@@ -1,0 +1,16 @@
+API
+=====
+.. automodule :: pygit.api
+   :members:
+
+Commands
+=============
+
+.. automodule :: pygit.commands
+   :members:
+
+Utility Functions
+=======================
+
+.. automodule :: pygit.utils
+   :members:

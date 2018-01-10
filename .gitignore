@@ -1,0 +1,7 @@
+**/__pycache__/ 
+.vscode 
+.ipynb_checkpoints 
+reporter/__pycache__/ 
+**.json 
+# Compiled python modules.
+*.pyc

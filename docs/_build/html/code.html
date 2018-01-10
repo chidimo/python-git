@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>API &mdash; PyGit 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="PyGit 1.0 documentation" href="index.html"/>
+        <link rel="prev" title="Welcome to PyGit’s documentation!" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PyGit
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Welcome to PyGit’s documentation!</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Code:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#module-pygit.commands">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#module-pygit.utils">Utility Functions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyGit</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/code.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pygit.api">
+<span id="api"></span><h1>API<a class="headerlink" href="#module-pygit.api" title="Permalink to this headline">¶</a></h1>
+<p>Frontend</p>
+<dl class="function">
+<dt id="pygit.api.load">
+<code class="descclassname">pygit.api.</code><code class="descname">load</code><span class="sig-paren">(</span><em>repo_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/api.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.api.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a repository with specified id</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit.api.repositories">
+<code class="descclassname">pygit.api.</code><code class="descname">repositories</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/api.html#repositories"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.api.repositories" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show all available repositories, path, and unique ID</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit.api.set_all">
+<code class="descclassname">pygit.api.</code><code class="descname">set_all</code><span class="sig-paren">(</span><em>git_type='win'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/api.html#set_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.api.set_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set all directories on first run</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit.api.show_repo_status">
+<code class="descclassname">pygit.api.</code><code class="descname">show_repo_status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/api.html#show_repo_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.api.show_repo_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>See status of all repositories</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygit.commands">
+<span id="commands"></span><h1>Commands<a class="headerlink" href="#module-pygit.commands" title="Permalink to this headline">¶</a></h1>
+<p>Reporter</p>
+<dl class="class">
+<dt id="pygit.commands.Commands">
+<em class="property">class </em><code class="descclassname">pygit.commands.</code><code class="descname">Commands</code><span class="sig-paren">(</span><em>repo_name</em>, <em>repo_dir</em>, <em>git_exec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/commands.html#Commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.commands.Commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Docstring</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>repo_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The repository name. See list of repositories by running</li>
+<li><strong>repo_dir</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The absolute path to the directory</li>
+<li><strong>git_exec</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The path to the git executable on the system</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="pygit.commands.Commands.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>files='.'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/commands.html#Commands.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.commands.Commands.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>git add</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygit.commands.Commands.commit">
+<code class="descname">commit</code><span class="sig-paren">(</span><em>message='minor changes'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/commands.html#Commands.commit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.commands.Commands.commit" title="Permalink to this definition">¶</a></dt>
+<dd><p>git commit</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygit.commands.Commands.fetch">
+<code class="descname">fetch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/commands.html#Commands.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.commands.Commands.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>git fetch</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygit.commands.Commands.pull">
+<code class="descname">pull</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/commands.html#Commands.pull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.commands.Commands.pull" title="Permalink to this definition">¶</a></dt>
+<dd><p>git pull</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygit.commands.Commands.push">
+<code class="descname">push</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/commands.html#Commands.push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.commands.Commands.push" title="Permalink to this definition">¶</a></dt>
+<dd><p>git push</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygit.commands.Commands.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>number='1'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/commands.html#Commands.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.commands.Commands.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>git reset</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygit.commands.Commands.status">
+<code class="descname">status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/commands.html#Commands.status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.commands.Commands.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>git status</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit.commands.main">
+<code class="descclassname">pygit.commands.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/commands.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.commands.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pygit.utils">
+<span id="utility-functions"></span><h1>Utility Functions<a class="headerlink" href="#module-pygit.utils" title="Permalink to this headline">¶</a></h1>
+<p>Utilities module</p>
+<dl class="function">
+<dt id="pygit.utils.get_repos_and_git">
+<code class="descclassname">pygit.utils.</code><code class="descname">get_repos_and_git</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/utils.html#get_repos_and_git"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.utils.get_repos_and_git" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all git repo paths, namesa and git exec path</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit.utils.is_git_repo">
+<code class="descclassname">pygit.utils.</code><code class="descname">is_git_repo</code><span class="sig-paren">(</span><em>directory</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/utils.html#is_git_repo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.utils.is_git_repo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if a folder is a git repo</p>
+<p>Checks for the presence of a .git folder inside a directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit.utils.main">
+<code class="descclassname">pygit.utils.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/utils.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.utils.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do nothing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit.utils.select_directory">
+<code class="descclassname">pygit.utils.</code><code class="descname">select_directory</code><span class="sig-paren">(</span><em>title='Select directory'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/utils.html#select_directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.utils.select_directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select and return a directory path</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit.utils.set_input_data">
+<code class="descclassname">pygit.utils.</code><code class="descname">set_input_data</code><span class="sig-paren">(</span><em>git_type='win'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/utils.html#set_input_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.utils.set_input_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>populate all input data</p>
+<p class="rubric">Notes</p>
+<p>The following details are exported to file</p>
+<ol class="arabic simple">
+<li>Repo names</li>
+<li>Repo directories</li>
+<li>Git executable path</li>
+</ol>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygit.utils.set_search_paths">
+<code class="descclassname">pygit.utils.</code><code class="descname">set_search_paths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygit/utils.html#set_search_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygit.utils.set_search_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set search paths for repo and git executable</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to PyGit’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Chidi Orji (orjichidi95@gmail.com).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
