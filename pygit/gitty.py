@@ -17,7 +17,7 @@ except ImportError:
 
 from send2trash import send2trash
 
-from paths import (
+from .paths import (
     REPO_PATH, IDS, EXEC_PATH, BASE_PATH,
     FILE_WIN, FILE_BASH, REPO_PATH, SEARCH_PATHS, EXEC_PATH
 )

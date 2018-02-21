@@ -9,7 +9,7 @@ from random import choice
 from send2trash import send2trash
 # import inspect
 
-from gitty import (
+from .gitty import (
     Commands, set_search_paths, get_repos_and_git, set_input_data,
     set_all, load
 )
