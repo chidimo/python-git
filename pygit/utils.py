@@ -7,6 +7,12 @@ import tkinter as tk
 from tkinter import filedialog
 from .paths import FILE_WIN, FILE_BASH, REPO_PATH, SEARCH_PATHS, EXEC_PATH
 
+def get_time_str(directory):
+    """Docstring"""
+    timing = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
+    path = os.path.abspath(os.path.join(directory, "REPO_STATUS_{}.txt".format(timing)))
+    return path, timing
+
 def is_git_repo(directory):
     """Determine if a folder is a git repo
 
@@ -91,9 +97,5 @@ def set_input_data(git_type="win"):
         json.dump(repo_path, fhand)
     return repo_path # need this for set_all()
 
-def main():
-    """Do nothing"""
-    return
-
 if __name__ == "__main__":
-    main()
+    pass

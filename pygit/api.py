@@ -6,9 +6,9 @@ import shutil
 from glob import glob
 from subprocess import Popen
 from send2trash import send2trash
-from .paths import REPO_PATH, IDS, EXEC_PATH, BASE_PATH, get_time_str
+from .paths import REPO_PATH, IDS, EXEC_PATH, BASE_PATH
 from .commands import Commands
-from .utils import set_search_paths, set_input_data, need_attention
+from .utils import set_search_paths, set_input_data, need_attention, get_time_str
 
 def set_all(git_type="win"):
     """Set all directories on first run"""
@@ -152,9 +152,5 @@ def status_all():
         fhand.write("\n".join(attention))
     _ = Popen(["notepad.exe", status_path])
 
-def main():
-    """Do nothin"""
-    return
-
 if __name__ == "__main__":
-    main()
+    pass

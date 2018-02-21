@@ -1,7 +1,5 @@
 """Setup"""
 
-# python -m pip install -e C:\Users\corji\dinma\git\pygit
-
 from setuptools import setup
 
 def readme():
@@ -10,7 +8,7 @@ def readme():
         return rhand.read()
 
 setup(name='PyGit',
-      version='2.0',
+      version='2.1',
       description='Automate common git tasks',
       long_description=readme(),
       classifiers=[

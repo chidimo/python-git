@@ -22,6 +22,10 @@ class Commands:
     --------
     : Commands object
 	"""
+
+    def __str__(self):
+        return "{}: {}".format(self.name, self.dir)
+
     def __init__(self, repo_name, repo_dir, git_exec, message="minor changes"):
         self.name = repo_name
         self.dir = repo_dir
@@ -113,13 +117,5 @@ class Commands:
     #     branch_name = re.search(r"\[origin\/(.*)\]", line)
     #     return branch_name.group(1)
 
-    def __str__(self):
-        return "{}: {}".format(self.name, self.dir)
-
-def main():
-    """main"""
-    print("See API for module usage")
-    return
-
 if __name__ == "__main__":
-    main()
+    pass
