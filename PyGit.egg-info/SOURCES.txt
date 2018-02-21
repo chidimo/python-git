@@ -8,7 +8,6 @@ PyGit.egg-info/not-zip-safe
 PyGit.egg-info/requires.txt
 PyGit.egg-info/top_level.txt
 pygit/__init__.py
-pygit/api.py
-pygit/commands.py
+pygit/gitty.py
 pygit/paths.py
-pygit/utils.py
+pygit/test.py

@@ -1,11 +1,12 @@
 Metadata-Version: 1.1
 Name: PyGit
-Version: 2.0
+Version: 2.1
 Summary: Automate common git tasks
 Home-page: UNKNOWN
 Author: Chidi Orji
 Author-email: orjichidi95@gmail.com
 License: MIT
+Description-Content-Type: UNKNOWN
 Description: PyGit
         ============
         
@@ -172,6 +173,8 @@ Description: PyGit
         Write tests
         
         Run test after importation to make sure every other thing works fine.
+        
+        Define an update function that updates the repo dictionaries for the case when a new repo is added but the overall directory structure remains unchanged.
         
 Keywords: git and github task automation
 Platform: UNKNOWN
