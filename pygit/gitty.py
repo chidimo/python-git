@@ -1,10 +1,11 @@
 """pygit"""
 
+# https://stackoverflow.com/questions/19687394/python-script-to-determine-if-a-directory-is-a-git-repository
+# http://gitpython.readthedocs.io/en/stable/
+
 import os
-import re
 import json
 import shutil
-from glob import glob
 from datetime import datetime
 from subprocess import Popen, PIPE, STDOUT
 
@@ -19,7 +20,7 @@ from send2trash import send2trash
 
 from .paths import (
     REPO_PATH, IDS, EXEC_PATH, BASE_PATH,
-    FILE_WIN, FILE_BASH, REPO_PATH, SEARCH_PATHS, EXEC_PATH
+    FILE_WIN, FILE_BASH, SEARCH_PATHS
 )
 
 def get_time_str(directory):
