@@ -26,27 +26,38 @@ def cleanup():
     """Cleanup files"""
     send2trash(STORAGE_DIR)
 
+# keep for later
+def kill_process(process):
+    if process.poll() is None: # don't send the signal unless it seems it is necessary
+        try:
+            process.kill()
+        except PermissionError: # ignore
+            print("Os error. cannot kill kill_process")
+            pass
+
 def check_git_support():
+    """Check if a git repo can be initialized in present shell"""
     try:
         os.mkdir(TEST_DIR)
     except FileExistsError:
         shutil.rmtree(TEST_DIR)
         os.mkdir(TEST_DIR)
 
-    os.chdir("test_git")
-    process = Popen(['git init'], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+    os.chdir(TEST_DIR)
+    process = Popen("git init", stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
     output, _ = process.communicate()
     msg = str(output.decode("utf-8"))
+    # print(msg)
     if "Initialized empty Git repository" in msg:
+        os.chdir(BASE_DIR)
         send2trash(TEST_DIR)
         return True
     return False
 
-def get_time_str(directory):
+def get_time_str(directory=BASE_DIR):
     """Docstring"""
-    timing = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
-    path = os.path.abspath(os.path.join(directory, "REPO_STATUS_@_{}.txt".format(timing)))
-    return path, timing
+    path = os.path.abspath(os.path.join(directory, "REPO_STATUS_@_{}.txt".format(TIMING)))
+    return path
 
 def is_git_repo(directory):
     """Determine if a folder is a git repo
@@ -64,6 +75,21 @@ def need_attention(status):
     return False
 
 def initialize():
+    """Initialize the data necessary for pygit to operate
+
+    Parameters
+    -----------
+    gitPath : str
+        Optional, Path to a git executable, if git is not in your system path.
+    masterDirectory : str
+        Optional, Full pathname to directory with multiple git repos
+    simpleDirectory : list
+        A list of full pathname to individual git repos.
+
+    Notes
+    ------
+    Accepts command line inputs only.
+    """
     try:
         os.mkdir(STORAGE_DIR)
     except FileExistsError:
@@ -73,11 +99,11 @@ def initialize():
     storage = shelve.open(os.path.join(STORAGE_DIR, "storage"))
     storage['last_index'] = str(0)
 
-    parser = argparse.ArgumentParser(prog="Pygit. Set directories")
+    parser = argparse.ArgumentParser(prog="Pygit. Initialize pygit's working directories.")
     parser.add_argument("-v", "--verbosity", type=int, help="turn verbosity ON/OFF", choices=[0,1])
-    parser.add_argument('-g', '--gitPath', help="Full pathname to git executable. cmd or bash")
-    parser.add_argument('-p', '--masterDirectory', help="Full pathname to directory with multiple git repos")
-    parser.add_argument('-r', '--simpleDirectory', help="Full pathname to single git repo", nargs='+')
+    parser.add_argument('-g', '--gitPath', help="Full pathname to git executable. cmd or bash.")
+    parser.add_argument('-p', '--masterDirectory', help="Full pathname to directory with multiple git repos.")
+    parser.add_argument('-r', '--simpleDirectory', help="A list of full pathname to individual git repos.", nargs='+')
 
     args = parser.parse_args()
 
@@ -88,13 +114,18 @@ def initialize():
             elif "git-bash.exe" in files:
                 storage['GIT_BASH'] = args.gitPath
             else:
-                print("A valid git executable was not found in the directory.")
+                print("A valid git executable was not found in the directory.\n")
                 pass
 
     else:
         if check_git_support():
-            print("Your system supports git natively")
+            storage['out_of_box_git_support'] = True
+
+            if args.verbosity:
+                print("Your system supports git out of the box.\n")
         elif "git" in os.environ['PATH']:
+            storage['out_of_box_git_support'] = False
+
             user_paths = os.environ['PATH'].split(os.pathsep)
             for path in user_paths:
                 if "git-cmd.exe" in path:
@@ -104,22 +135,24 @@ def initialize():
                     storage['GIT_BASH'] = path
                     break
         else:
-            print("Git was not found in your system path. Try setting the location manually.")
+            print("Git was not found in your system path.\nYou may need to set the location manually using the -g flag.\n")
 
     if args.masterDirectory:
         last_index = int(storage['last_index'])
-        print("master", args.masterDirectory)
+
+        if args.verbosity:
+            print("Master directory set to ", args.masterDirectory, "\n")
 
         for path, _, __ in os.walk(args.masterDirectory):
-            path_full_directory = os.path.abspath(path)
-            if is_git_repo(path_full_directory):
+            master_absolute_path = os.path.abspath(path)
+            if is_git_repo(master_absolute_path):
 
                 if sys.platform == 'win32':
-                    name = path_full_directory.split("\\")[-1]
+                    name = master_absolute_path.split("\\")[-1]
                 if sys.platform == 'linux':
-                    name = path_full_directory.split("/")[-1]
+                    name = master_absolute_path.split("/")[-1]
 
-                storage[str(last_index)] = [name, path_full_directory]
+                storage[str(last_index)] = [name, master_absolute_path]
                 last_index += 1
         storage['last_index'] = str(last_index)
         storage.close()
@@ -135,19 +168,20 @@ def initialize():
                     name = directory.split("/")[-1]
                 storage[str(last_index)] = [name, directory]
             else:
-                print(directory, " is not a valid git repo.\nMoving on.")
+                print(directory, " is not a valid git repo.\nContinuing...")
                 continue
             last_index += 1
-    storage['last_index'] = str(last_index)
-    storage.close()
+        storage['last_index'] = str(last_index)
+        storage.close()
 
-    print("Done, printing")
+    if args.verbosity:
+        print("Done\nThe following directories were set.\n")
+        shelf = shelve.open(os.path.join(STORAGE_DIR, "storage"))
 
-    shelfFile = shelve.open(os.path.join(STORAGE_DIR, "storage"))
-
-    for key in shelfFile:
-        print(key, "********", shelfFile[key])
-    shelfFile.close()
+        for key in shelf:
+            print(key, "", shelf[key])
+            print()
+        shelf.close()
     return
 
 class Commands:
