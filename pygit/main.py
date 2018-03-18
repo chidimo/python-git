@@ -14,20 +14,33 @@ from subprocess import Popen, PIPE, STDOUT
 
 from send2trash import send2trash
 
-TOP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-USERHOME = os.path.abspath(os.path.expanduser('~'))
-BASE_DIR = os.path.join(TOP_DIR, "storage")
-TIMING = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STORAGE_DIR = os.path.join(BASE_DIR, "storage")
+TEST_DIR = os.path.join(BASE_DIR, "test_git/")
 
-SEARCH_PATHS = os.path.abspath(os.path.join(BASE_DIR, "search_path.json"))
-REPO_PATH = os.path.abspath(os.path.join(BASE_DIR, "repo_path.json"))
-EXEC_PATH = os.path.abspath(os.path.join(BASE_DIR, "exec_path.json"))
-IDS = os.path.abspath(os.path.join(BASE_DIR, "id_path.json"))
+USERHOME = os.path.abspath(os.path.expanduser('~'))
 DESKTOP = os.path.abspath(USERHOME + '/Desktop/'+ "status.txt")
+TIMING = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
 
 def cleanup():
     """Cleanup files"""
-    send2trash(BASE_DIR)
+    send2trash(STORAGE_DIR)
+
+def check_git_support():
+    try:
+        os.mkdir(TEST_DIR)
+    except FileExistsError:
+        shutil.rmtree(TEST_DIR)
+        os.mkdir(TEST_DIR)
+
+    os.chdir("test_git")
+    process = Popen(['git init'], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+    output, _ = process.communicate()
+    msg = str(output.decode("utf-8"))
+    if "Initialized empty Git repository" in msg:
+        send2trash(TEST_DIR)
+        return True
+    return False
 
 def get_time_str(directory):
     """Docstring"""
@@ -52,12 +65,12 @@ def need_attention(status):
 
 def initialize():
     try:
-        os.mkdir(BASE_DIR)
+        os.mkdir(STORAGE_DIR)
     except FileExistsError:
-        shutil.rmtree(BASE_DIR)
-        os.mkdir(BASE_DIR)
+        shutil.rmtree(STORAGE_DIR)
+        os.mkdir(STORAGE_DIR)
 
-    storage = shelve.open(os.path.join(BASE_DIR, "storage"))
+    storage = shelve.open(os.path.join(STORAGE_DIR, "storage"))
     storage['last_index'] = str(0)
 
     parser = argparse.ArgumentParser(prog="Pygit. Set directories")
@@ -79,7 +92,9 @@ def initialize():
                 pass
 
     else:
-        if "git" in os.environ['PATH']:
+        if check_git_support():
+            print("Your system supports git natively")
+        elif "git" in os.environ['PATH']:
             user_paths = os.environ['PATH'].split(os.pathsep)
             for path in user_paths:
                 if "git-cmd.exe" in path:
@@ -128,7 +143,7 @@ def initialize():
 
     print("Done, printing")
 
-    shelfFile = shelve.open(os.path.join(BASE_DIR, "storage"))
+    shelfFile = shelve.open(os.path.join(STORAGE_DIR, "storage"))
 
     for key in shelfFile:
         print(key, "********", shelfFile[key])
@@ -171,16 +186,14 @@ class Commands:
 
     def fetch(self):
         """git fetch"""
-        process = Popen([self.git_exec, "git fetch"], shell=True,
-                        stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        process = Popen([self.git_exec, "git fetch"], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
         # output, error = process.communicate()
         _, _ = process.communicate()
 
     def status(self):
         """git status"""
         self.fetch() # always do a fetch before reporting status
-        process = Popen([self.git_exec, "git status"], shell=True,
-                        stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        process = Popen([self.git_exec, "git status"], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -188,9 +201,7 @@ class Commands:
         """git add"""
         files = "` ".join(files.split())
         add_file = 'git add {}'.format(files)
-        process = Popen([self.git_exec, add_file],
-                        shell=True, stdin=PIPE, stdout=PIPE,
-                        stderr=STDOUT,)
+        process = Popen([self.git_exec, add_file], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -203,9 +214,7 @@ class Commands:
         else:
             message = enter
         # message = "` ".join(message.split())
-        process = Popen([self.git_exec, 'git', 'commit', '-m', message],
-                        shell=False, stdin=PIPE, stdout=PIPE,
-                        stderr=PIPE,)
+        process = Popen([self.git_exec, 'git', 'commit', '-m', message], shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -216,22 +225,19 @@ class Commands:
 
     def push(self):
         """git push"""
-        process = Popen([self.git_exec, 'git push'], shell=True,
-                        stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        process = Popen([self.git_exec, 'git push'], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str("Push completed.{}".format(str(output.decode("utf-8"))))
 
     def pull(self):
         """git pull"""
-        process = Popen([self.git_exec, 'git pull'], shell=True,
-                        stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        process = Popen([self.git_exec, 'git pull'], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str("Pull completed.\n{}".format(str(output.decode("utf-8"))))
 
     def reset(self, number='1'):
         """git reset"""
-        process = Popen([self.git_exec, 'git reset HEAD~', number], shell=True,
-                        stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        process = Popen([self.git_exec, 'git reset HEAD~', number], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -251,7 +257,7 @@ class Commands:
 def repo_list():
     """Show all available repositories, path, and unique ID"""
     os.system("cls")
-    storage = shelve.open(os.path.join(BASE_DIR, "storage"))
+    storage = shelve.open(os.path.join(STORAGE_DIR, "storage"))
 
     for key in storage:
         print("{:2} : {:<30} : {:<}".format(storage[key], storage[key][0], storage[key][1]))
@@ -273,7 +279,7 @@ def load(repo_id): # id is string
         git_executable_path = json.load(rhand)
     exe = git_executable_path.get("git", None)
 # http://l4wisdom.com/python/python_shelve.php
-    storage = shelve.open(os.path.join(BASE_DIR, "storage"))
+    storage = shelve.open(os.path.join(STORAGE_DIR, "storage"))
 
 
     return Commands(name, path, exe)
@@ -333,7 +339,7 @@ def status_all():
     print("Getting repository status...Please be patient")
     attention = []
 
-    status_path, timing = get_time_str(BASE_DIR)
+    status_path, timing = get_time_str(STORAGE_DIR)
 
     with open(status_path, 'w+') as fhand:
         fhand.write("Repository status as at {}".format(timing))

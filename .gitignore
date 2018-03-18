@@ -5,3 +5,4 @@ reporter/__pycache__/
 **.json 
 # Compiled python modules.
 *.pyc
+storage/ 
