@@ -16,6 +16,7 @@ from send2trash import send2trash
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORAGE_DIR = os.path.join(BASE_DIR, "storage")
+STATUS_FILE = os.path.join(BASE_DIR, "status.txt")
 TEST_DIR = os.path.join(BASE_DIR, "test_git/")
 
 USERHOME = os.path.abspath(os.path.expanduser('~'))
@@ -69,7 +70,7 @@ def is_git_repo(directory):
 
 def need_attention(status):
     """Return True if a repo status is not same as that of remote"""
-    msg = ["staged", "behind", "ahead"]
+    msg = ["staged", "behind", "ahead", "Untracked"]
     if any([each in status for each in msg]):
         return True
     return False
@@ -119,13 +120,9 @@ def initialize():
 
     else:
         if check_git_support():
-            storage['out_of_box_git_support'] = True
-
             if args.verbosity:
                 print("Your system supports git out of the box.\n")
         elif "git" in os.environ['PATH']:
-            storage['out_of_box_git_support'] = False
-
             user_paths = os.environ['PATH'].split(os.pathsep)
             for path in user_paths:
                 if "git-cmd.exe" in path:
@@ -191,7 +188,7 @@ class Commands:
     -----------
     repo_name : str
         The repository name. See list of repositories by running
-    repository_directory : str
+    master_directory : str
         The absolute path to the directory
     git_exec : str
         The path to the git executable on the system
@@ -206,16 +203,16 @@ class Commands:
     def __str__(self):
         return "Commands: {}: {}".format(self.name, self.dir)
 
-    def __init__(self, repo_name, repository_directory, git_exec=None, message="minor changes"):
+    def __init__(self, repo_name, master_directory, git_exec=None, message="minor changes"):
         self.name = repo_name
-        self.dir = repository_directory
+        self.dir = master_directory
         self.git_exec = git_exec
         self.message = message
 
         try:
             os.chdir(self.dir)
         except (FileNotFoundError, TypeError):
-            print("{} repo may have been moved.\n Run initialize() to update paths".format(self.name))
+            print("{} may have been moved.\n Run initialize() to update paths".format(self.name))
         self.dir = os.getcwd()
 
     def fetch(self):
@@ -230,28 +227,49 @@ class Commands:
     def status(self):
         """git status"""
         self.fetch() # always do a fetch before reporting status
-        process = Popen([self.git_exec, "git status"], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        if self.git_exec:
+            process = Popen([self.git_exec, "git status"], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        else:
+            process = Popen("git status", stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        output, _ = process.communicate()
+        return str(output.decode("utf-8"))
+
+    def add_file(self, file_name):
+        """git add file"""
+        add_file = 'git add {}'.format(file_name)
+        if self.git_exec:
+            process = Popen([self.git_exec, add_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        else:
+            process = Popen(add_file, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
     def add_all(self, files="."):
-        """git add"""
+        """git add all"""
         files = "` ".join(files.split())
         add_file = 'git add {}'.format(files)
+        if self.git_exec:
+            process = Popen([self.git_exec, add_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        else:
+            process = Popen(add_file, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+
         process = Popen([self.git_exec, add_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
     def commit(self):
         """git commit"""
-        msg = "Commit message.\nPress enter to use 'minor changes'"
-        enter = input(msg)
+        enter = input("Commit message.\nPress enter to use 'minor changes'")
         if enter == "":
             message = self.message
         else:
             message = enter
         # message = "` ".join(message.split())
-        process = Popen([self.git_exec, 'git', 'commit', '-m', message], shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE,)
+        if self.git_exec:
+            process = Popen([self.git_exec, 'git', 'commit', '-m', message], stdin=PIPE, stdout=PIPE, stderr=PIPE,)
+        else:
+            process = Popen(['git', 'commit', '-m', message], stdin=PIPE, stdout=PIPE, stderr=PIPE,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -297,29 +315,16 @@ def repo_list():
     storage = shelve.open(os.path.join(STORAGE_DIR, "storage"))
 
     for key in storage:
-        print("{:2} : {:<30} : {:<}".format(storage[key], storage[key][0], storage[key][1]))
+        print(key, storage[key])
+    storage.close()
 
-def load(repo_id): # id is string
+def load_repo(repo_id): # id is string
     """Load a repository with specified id"""
-    try:
-        with open(IDS, "r") as rhand:
-            repo_ids = json.load(rhand)
-    except FileNotFoundError:
-        print("Please run 'pygit.initialize()' first")
-    name = repo_ids.get(repo_id, None)
-
-    with open(REPO_PATH, "r") as rhand:
-        paths = json.load(rhand)
-    path = paths.get(name, None)
-
-    with open(EXEC_PATH, "r") as rhand:
-        git_executable_path = json.load(rhand)
-    exe = git_executable_path.get("git", None)
-# http://l4wisdom.com/python/python_shelve.php
     storage = shelve.open(os.path.join(STORAGE_DIR, "storage"))
+    repo = storage[str(repo_id)]
+    storage.close()
 
-
-    return Commands(name, path, exe)
+    return Commands(repo[0], repo[1])
 
 def load_set(*args):
     """Create `commands` object for a set of repositories
@@ -334,7 +339,7 @@ def load_set(*args):
     A list of commands objects. One for each of the entered string
     """
     for each in args:
-        yield load(each)
+        yield load_repo(each)
 
 def load_all():
     """Load all repositories
@@ -344,13 +349,16 @@ def load_all():
     command object of each repo
     """
     try:
-        with open(IDS, "r") as rhand:
-            repo_ids = json.load(rhand)
+        storage = shelve.open(os.path.join(STORAGE_DIR, "storage"))
     except FileNotFoundError:
         print("Please run 'pygit.initialize()' first")
+        return
 
-    for each in repo_ids.keys():
-        yield load(each)
+    for key in storage.keys():
+        print(key, storage[key])
+        if key == "last_index":
+            continue
+        yield load_repo(key)
 
 def pull_all():
     """Pull all repositories"""
@@ -376,23 +384,24 @@ def status_all():
     print("Getting repository status...Please be patient")
     attention = []
 
-    status_path, timing = get_time_str(STORAGE_DIR)
-
-    with open(status_path, 'w+') as fhand:
-        fhand.write("Repository status as at {}".format(timing))
+    with open(STATUS_FILE, 'w+') as fhand:
+        fhand.write("Repository status as at {}".format(TIMING))
         fhand.write("\n\n")
         for each in load_all():
             name = each.name
             stat = each.status()
+
             heading = "*** {} ***".format(name)
             fhand.write(heading + "\n")
             fhand.write(stat + "\n\n\n")
+
             if need_attention(stat):
                 attention.append(name)
+
         fhand.write("**"*25)
         fhand.write("\nThe following repos need attention\n\n")
         fhand.write("\n".join(attention))
-    _ = Popen(["notepad.exe", status_path])
+    _ = Popen(["notepad.exe", STATUS_FILE])
 
 if __name__ == "__main__":
     initialize()

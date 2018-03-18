@@ -1,0 +1,220 @@
+Repository status as at Mon_19_Mar_2018_00_18_10_AM
+
+*** accad ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** algoliasearch-django-example ***
+On branch master
+Your branch and 'origin/master' have diverged,
+and have 1 and 2 different commits each, respectively.
+  (use "git pull" to merge the remote branch into yours)
+
+nothing to commit, working tree clean
+
+
+
+*** choputa ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** choralcentral ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** codebase ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** django-audiofield ***
+On branch develop
+Your branch is behind 'origin/develop' by 2 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+
+
+
+*** django-scheduler-sample ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	project_sample/assets/admin/
+	project_sample/assets/debug_toolbar/
+	project_sample/assets/images/
+	project_sample/assets/schedule.css
+	project_sample/assets/schedule.js
+	project_sample/project_sample.db
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+
+
+*** djdev ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** funnshopp ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** Hackerrank-Solutions ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** immensity.github.io ***
+On branch master
+Your branch is behind 'origin/master' by 3 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+
+
+
+*** line_of_balance ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** nairaland_programming ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** nairapop ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	popcorn/__init__.py
+	popcorn/crawl_exchange.py
+	popcorn/crawl_page.py
+	popcorn/crawl_post.py
+	popcorn/crawl_section.py
+	popcorn/crawl_user.py
+	popcorn/exporters.py
+	popcorn/get_sections.py
+	popcorn/paths.py
+	popcorn/statistics.py
+	popcorn/utils.py
+	popcorn/web_index.py
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+
+
+*** pillart ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** Project-Euler-Solutions ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** pygit ***
+On branch master
+Your branch is ahead of 'origin/master' by 2 commits.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   pygit/__init__.py
+	modified:   pygit/main.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	status.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+
+
+*** test_git ***
+On branch master
+
+No commits yet
+
+nothing to commit (create/copy files and use "git add" to track)
+
+
+
+*** pywebber ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** summa_pythonista ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+*** tdd ***
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+
+
+
+**************************************************
+The following repos need attention
+
+django-audiofield
+immensity.github.io
+pygit
