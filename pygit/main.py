@@ -204,9 +204,9 @@ class Commands:
 	"""
 
     def __str__(self):
-        return "{}: {}".format(self.name, self.dir)
+        return "Commands: {}: {}".format(self.name, self.dir)
 
-    def __init__(self, repo_name, repository_directory, git_exec, message="minor changes"):
+    def __init__(self, repo_name, repository_directory, git_exec=None, message="minor changes"):
         self.name = repo_name
         self.dir = repository_directory
         self.git_exec = git_exec
@@ -220,14 +220,17 @@ class Commands:
 
     def fetch(self):
         """git fetch"""
-        process = Popen([self.git_exec, "git fetch"], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        if self.git_exec:
+            process = Popen([self.git_exec, "git fetch"], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        else:
+            process = Popen("git fetch", stdin=PIPE, stdout=PIPE, stderr=STDOUT)
         # output, error = process.communicate()
         _, _ = process.communicate()
 
     def status(self):
         """git status"""
         self.fetch() # always do a fetch before reporting status
-        process = Popen([self.git_exec, "git status"], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        process = Popen([self.git_exec, "git status"], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -235,7 +238,7 @@ class Commands:
         """git add"""
         files = "` ".join(files.split())
         add_file = 'git add {}'.format(files)
-        process = Popen([self.git_exec, add_file], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        process = Popen([self.git_exec, add_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -259,19 +262,19 @@ class Commands:
 
     def push(self):
         """git push"""
-        process = Popen([self.git_exec, 'git push'], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        process = Popen([self.git_exec, 'git push'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str("Push completed.{}".format(str(output.decode("utf-8"))))
 
     def pull(self):
         """git pull"""
-        process = Popen([self.git_exec, 'git pull'], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        process = Popen([self.git_exec, 'git pull'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str("Pull completed.\n{}".format(str(output.decode("utf-8"))))
 
     def reset(self, number='1'):
         """git reset"""
-        process = Popen([self.git_exec, 'git reset HEAD~', number], shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        process = Popen([self.git_exec, 'git reset HEAD~', number], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
