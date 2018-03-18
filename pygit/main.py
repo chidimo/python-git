@@ -4,8 +4,11 @@
 # http://gitpython.readthedocs.io/en/stable/
 
 import os
+import sys
 import json
 import shutil
+import shelve
+import argparse
 from datetime import datetime
 from subprocess import Popen, PIPE, STDOUT
 
@@ -18,10 +21,21 @@ except ImportError:
 
 from send2trash import send2trash
 
-from .paths import (
-    REPO_PATH, IDS, EXEC_PATH, BASE_PATH,
-    FILE_WIN, FILE_BASH, SEARCH_PATHS
-)
+
+TOP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+USERHOME = os.path.abspath(os.path.expanduser('~'))
+BASE_PATH = os.path.join(TOP_DIR, "pygit_files")
+TIMING = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
+
+SEARCH_PATHS = os.path.abspath(os.path.join(BASE_PATH, "search_path.json"))
+REPO_PATH = os.path.abspath(os.path.join(BASE_PATH, "repo_path.json"))
+EXEC_PATH = os.path.abspath(os.path.join(BASE_PATH, "exec_path.json"))
+IDS = os.path.abspath(os.path.join(BASE_PATH, "id_path.json"))
+DESKTOP = os.path.abspath(USERHOME + '/Desktop/'+ "status.txt")
+
+FILE_WIN = r"git-cmd.exe"
+FILE_BASH = r"git-bash.exe"
+
 
 def get_time_str(directory):
     """Docstring"""
@@ -31,7 +45,6 @@ def get_time_str(directory):
 
 def is_git_repo(directory):
     """Determine if a folder is a git repo
-
     Checks for the presence of a .git folder inside a directory
     """
     if ".git" in os.listdir(directory):
@@ -40,7 +53,7 @@ def is_git_repo(directory):
 
 def need_attention(status):
     """Return True if a repo status is not same as that of remote"""
-    msg = ["not staged", "is behind", "is ahead"]
+    msg = ["staged", "behind", "ahead"]
     if any([each in status for each in msg]):
         return True
     return False
@@ -57,6 +70,34 @@ def select_directory(title="Select directory"):
     except:
         print("Tk inter was not found.")
     return root_dir
+
+def get_and_store_repository_and_git_paths():
+    storage = shelve.open("storage_paths")
+
+    parser = argparse.ArgumentParser(prog="Pygit. Set directories")
+    parser.add_argument("-v", "--verbosity", type=int, help="turn verbosity ON/OFF", choices=[0,1])
+    parser.add_argument('-g', '--gitPath', help="Path to git executable. cmd or bash")
+    parser.add_argument('-p', '--repoMpath', help="Path to directory with multiple git repos")
+    parser.add_argument('-r', '--repoPath', help="Path to single git repo", nargs='+')
+
+    args = parser.parse_args()
+
+    if args.gitPath:
+        storage['gitPath'] = gitPath
+    else:
+        user_path = os.environ['PATH']
+        if git in user_path:
+            storage['gitPath'] = user_path
+        else:
+            print('Git was not found on your system path.\nPlease set it manually')
+            pass
+    if args.repoMpath:
+
+
+
+
+
+
 
 def set_search_paths():
     """Set search paths for repo and git executable"""
@@ -115,9 +156,6 @@ def set_input_data(git_type="win"):
     with open(REPO_PATH, "w+") as fhand:
         json.dump(repository_path, fhand)
     return repository_path # need this for set_all()
-
-if __name__ == "__main__":
-    pass
 
 class Commands:
     """Commands class
@@ -267,7 +305,7 @@ def set_all(git_type="win"):
 
 def cleanup():
     """Cleanup files"""
-    _ = send2trash(BASE_PATH)
+    send2trash(BASE_PATH)
 
 def repo_list():
     """Show all available repositories, path, and unique ID"""
