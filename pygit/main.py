@@ -14,14 +14,14 @@ from subprocess import Popen, PIPE, STDOUT
 
 from send2trash import send2trash
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STORAGE_DIR = os.path.join(BASE_DIR, "storage")
-STATUS_FILE = os.path.join(BASE_DIR, "status.txt")
-TEST_DIR = os.path.join(BASE_DIR, "test_git/")
-
 USERHOME = os.path.abspath(os.path.expanduser('~'))
 DESKTOP = os.path.abspath(USERHOME + '/Desktop/'+ "status.txt")
 TIMING = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STORAGE_DIR = os.path.join(BASE_DIR, "storage")
+STATUS_DIR = os.path.join(BASE_DIR ,"status")
+TEST_DIR = os.path.join(BASE_DIR, "test_git/")
 
 def cleanup():
     """Cleanup files"""
@@ -384,7 +384,15 @@ def status_all():
     print("Getting repository status...Please be patient")
     attention = []
 
-    with open(STATUS_FILE, 'w+') as fhand:
+    try:
+        os.mkdir(STATUS_DIR)
+    except FileExistsError:
+        pass
+    os.chdir(STATUS_DIR)
+
+    fname = "status_{}.txt".format(TIMING)
+
+    with open(fname, 'w+') as fhand:
         fhand.write("Repository status as at {}".format(TIMING))
         fhand.write("\n\n")
         for each in load_all():
@@ -401,7 +409,8 @@ def status_all():
         fhand.write("**"*25)
         fhand.write("\nThe following repos need attention\n\n")
         fhand.write("\n".join(attention))
-    _ = Popen(["notepad.exe", STATUS_FILE])
+    _ = Popen(["notepad.exe", fname])
+    os.chdir(BASE_DIR)
 
 if __name__ == "__main__":
     initialize()

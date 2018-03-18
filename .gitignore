@@ -6,3 +6,5 @@ reporter/__pycache__/
 # Compiled python modules.
 *.pyc
 storage/ 
+status/
+
