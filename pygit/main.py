@@ -12,30 +12,22 @@ import argparse
 from datetime import datetime
 from subprocess import Popen, PIPE, STDOUT
 
-try:
-    import tkinter as tk
-    from tkinter import filedialog
-except ImportError:
-    print("tkinter was not found.")
-    pass
-
 from send2trash import send2trash
-
 
 TOP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 USERHOME = os.path.abspath(os.path.expanduser('~'))
-BASE_PATH = os.path.join(TOP_DIR, "pygit_files")
+BASE_DIR = os.path.join(TOP_DIR, "storage")
 TIMING = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
 
-SEARCH_PATHS = os.path.abspath(os.path.join(BASE_PATH, "search_path.json"))
-REPO_PATH = os.path.abspath(os.path.join(BASE_PATH, "repo_path.json"))
-EXEC_PATH = os.path.abspath(os.path.join(BASE_PATH, "exec_path.json"))
-IDS = os.path.abspath(os.path.join(BASE_PATH, "id_path.json"))
+SEARCH_PATHS = os.path.abspath(os.path.join(BASE_DIR, "search_path.json"))
+REPO_PATH = os.path.abspath(os.path.join(BASE_DIR, "repo_path.json"))
+EXEC_PATH = os.path.abspath(os.path.join(BASE_DIR, "exec_path.json"))
+IDS = os.path.abspath(os.path.join(BASE_DIR, "id_path.json"))
 DESKTOP = os.path.abspath(USERHOME + '/Desktop/'+ "status.txt")
 
-FILE_WIN = r"git-cmd.exe"
-FILE_BASH = r"git-bash.exe"
-
+def cleanup():
+    """Cleanup files"""
+    send2trash(BASE_DIR)
 
 def get_time_str(directory):
     """Docstring"""
@@ -58,104 +50,90 @@ def need_attention(status):
         return True
     return False
 
-def select_directory(title="Select directory"):
-    """Select and return a directory path"""
+def initialize():
     try:
-        root = tk.Tk()
-        root.withdraw()
-        initialdir = "/"
-        root_dir = filedialog.askdirectory(parent=root,
-                                        initialdir=initialdir,
-                                       title=title)
-    except:
-        print("Tk inter was not found.")
-    return root_dir
+        os.mkdir(BASE_DIR)
+    except FileExistsError:
+        shutil.rmtree(BASE_DIR)
+        os.mkdir(BASE_DIR)
 
-def get_and_store_repository_and_git_paths():
-    storage = shelve.open("storage_paths")
+    storage = shelve.open(os.path.join(BASE_DIR, "storage"))
+    storage['last_index'] = str(0)
 
     parser = argparse.ArgumentParser(prog="Pygit. Set directories")
     parser.add_argument("-v", "--verbosity", type=int, help="turn verbosity ON/OFF", choices=[0,1])
-    parser.add_argument('-g', '--gitPath', help="Path to git executable. cmd or bash")
-    parser.add_argument('-p', '--repoMpath', help="Path to directory with multiple git repos")
-    parser.add_argument('-r', '--repoPath', help="Path to single git repo", nargs='+')
+    parser.add_argument('-g', '--gitPath', help="Full pathname to git executable. cmd or bash")
+    parser.add_argument('-p', '--masterDirectory', help="Full pathname to directory with multiple git repos")
+    parser.add_argument('-r', '--simpleDirectory', help="Full pathname to single git repo", nargs='+')
 
     args = parser.parse_args()
 
     if args.gitPath:
-        storage['gitPath'] = gitPath
+        for _, __, files in os.walk(args.gitPath):
+            if "git-cmd.exe" in files:
+                storage['GIT_WINDOWS'] = args.gitPath
+            elif "git-bash.exe" in files:
+                storage['GIT_BASH'] = args.gitPath
+            else:
+                print("A valid git executable was not found in the directory.")
+                pass
+
     else:
-        user_path = os.environ['PATH']
-        if git in user_path:
-            storage['gitPath'] = user_path
+        if "git" in os.environ['PATH']:
+            user_paths = os.environ['PATH'].split(os.pathsep)
+            for path in user_paths:
+                if "git-cmd.exe" in path:
+                    storage['GIT_WINDOWS'] = path
+                    break
+                if "git-bash.exe" in path:
+                    storage['GIT_BASH'] = path
+                    break
         else:
-            print('Git was not found on your system path.\nPlease set it manually')
-            pass
-    if args.repoMpath:
+            print("Git was not found in your system path. Try setting the location manually.")
 
+    if args.masterDirectory:
+        last_index = int(storage['last_index'])
+        print("master", args.masterDirectory)
 
+        for path, _, __ in os.walk(args.masterDirectory):
+            path_full_directory = os.path.abspath(path)
+            if is_git_repo(path_full_directory):
 
+                if sys.platform == 'win32':
+                    name = path_full_directory.split("\\")[-1]
+                if sys.platform == 'linux':
+                    name = path_full_directory.split("/")[-1]
 
+                storage[str(last_index)] = [name, path_full_directory]
+                last_index += 1
+        storage['last_index'] = str(last_index)
+        storage.close()
 
+    if args.simpleDirectory:
+        last_index = int(storage['last_index'])
 
+        for directory in args.simpleDirectory:
+            if is_git_repo(directory):
+                if sys.platform == 'win32':
+                    name = directory.split("\\")[-1]
+                if sys.platform == 'linux':
+                    name = directory.split("/")[-1]
+                storage[str(last_index)] = [name, directory]
+            else:
+                print(directory, " is not a valid git repo.\nMoving on.")
+                continue
+            last_index += 1
+    storage['last_index'] = str(last_index)
+    storage.close()
 
-def set_search_paths():
-    """Set search paths for repo and git executable"""
-    repo_search_path = select_directory(title="Select path to scan for REPO directories")
-    git_search_path = select_directory(title="Select path to scan for GIT executable")
+    print("Done, printing")
 
-    search_path = {}
-    search_path["repos"] = repo_search_path
-    search_path["execs"] = git_search_path
+    shelfFile = shelve.open(os.path.join(BASE_DIR, "storage"))
 
-    with open(SEARCH_PATHS, "w+") as fhand:
-        json.dump(search_path, fhand)
-
-def git_repo_path_and_exec_path():
-    """Return a list of all git repo paths, names and git executable path"""
-
-    with open(SEARCH_PATHS, "r+") as rhand:
-        spaths = json.load(rhand)
-
-    repository_directory = spaths["repos"]
-    git_repos = [os.path.abspath(root) for root, _, __ in os.walk(repository_directory) if is_git_repo(root)]
-    names = [each.split("\\")[-1] for each in git_repos]
-
-    git_directory = spaths["execs"]
-    execs = {}
-    for root, _, files in os.walk(git_directory):
-        if FILE_WIN in files:
-            git_executable_path = os.path.abspath(os.path.join(root, FILE_WIN))
-            execs["win"] = git_executable_path
-        if FILE_BASH in files:
-            git_executable_path = os.path.abspath(os.path.join(root, FILE_BASH))
-            execs["bash"] = git_executable_path
-    return git_repos, names, execs
-
-def set_input_data(git_type="win"):
-    """populate all input data
-
-    Notes
-    ------
-    The following details are exported to file
-
-    1. Repo names
-    2. Repo directories
-    3. Git executable path
-    """
-    repository_path = {}
-    git_executable_path = {}
-    repos, names, git_path = git_repo_path_and_exec_path()
-
-    git_executable_path["git"] = git_path[git_type]
-    with open(EXEC_PATH, "w") as fhand:
-        json.dump(git_executable_path, fhand)
-
-    for name, repo in zip(names, repos):
-        repository_path[name] = repo
-    with open(REPO_PATH, "w+") as fhand:
-        json.dump(repository_path, fhand)
-    return repository_path # need this for set_all()
+    for key in shelfFile:
+        print(key, "********", shelfFile[key])
+    shelfFile.close()
+    return
 
 class Commands:
     """Commands class
@@ -188,7 +166,7 @@ class Commands:
         try:
             os.chdir(self.dir)
         except (FileNotFoundError, TypeError):
-            print("{} repo may have been moved.\n Run set_all() to update paths".format(self.name))
+            print("{} repo may have been moved.\n Run initialize() to update paths".format(self.name))
         self.dir = os.getcwd()
 
     def fetch(self):
@@ -270,54 +248,13 @@ class Commands:
     #     branch_name = re.search(r"\[origin\/(.*)\]", line)
     #     return branch_name.group(1)
 
-def set_all(git_type="win"):
-    """Set all directories on first run"""
-    if os.path.exists(BASE_PATH):
-        msg1 = "\n\t{} already exists\n".format(BASE_PATH)
-        msg2 = "\tWhat would you like to do?\n\n"
-        msg3 = "\t1 ===== Regenerate\n"
-        msg4 = "\t2 ===== Leave as is\n"
-        decide = input(msg1 + msg2 + msg3 + msg4)
-
-        if decide == "1":
-            try:
-                os.mkdir(BASE_PATH)
-            except FileExistsError:
-                shutil.rmtree(BASE_PATH)
-                try:
-                    os.mkdir(BASE_PATH)
-                except PermissionError:
-                    print("Please exit the folder before running set_all()")
-            set_search_paths()
-        elif decide == "2":
-            print("File unchanged")
-            return
-    else:
-        os.mkdir(BASE_PATH)
-        set_search_paths()
-    repos = set_input_data(git_type=git_type)
-
-    ids = {} # set string-valued ids
-    for ind, val in enumerate(repos):
-        ids[ind] = val
-    with open(IDS, "w+") as whand:
-        json.dump(ids, whand)
-
-def cleanup():
-    """Cleanup files"""
-    send2trash(BASE_PATH)
-
 def repo_list():
     """Show all available repositories, path, and unique ID"""
     os.system("cls")
-    with open(IDS, "r") as rhand:
-        repo_ids = json.load(rhand)
+    storage = shelve.open(os.path.join(BASE_DIR, "storage"))
 
-    with open(REPO_PATH, "r") as rhand:
-        paths = json.load(rhand)
-
-    for rep_id, rep_name in zip(repo_ids.keys(), repo_ids.values()):
-        print("{:2} : {:<30} : {:<}".format(rep_id, rep_name, paths.get(rep_name, None)))
+    for key in storage:
+        print("{:2} : {:<30} : {:<}".format(storage[key], storage[key][0], storage[key][1]))
 
 def load(repo_id): # id is string
     """Load a repository with specified id"""
@@ -325,7 +262,7 @@ def load(repo_id): # id is string
         with open(IDS, "r") as rhand:
             repo_ids = json.load(rhand)
     except FileNotFoundError:
-        print("Please run 'pygit.set_all()' first")
+        print("Please run 'pygit.initialize()' first")
     name = repo_ids.get(repo_id, None)
 
     with open(REPO_PATH, "r") as rhand:
@@ -335,6 +272,9 @@ def load(repo_id): # id is string
     with open(EXEC_PATH, "r") as rhand:
         git_executable_path = json.load(rhand)
     exe = git_executable_path.get("git", None)
+# http://l4wisdom.com/python/python_shelve.php
+    storage = shelve.open(os.path.join(BASE_DIR, "storage"))
+
 
     return Commands(name, path, exe)
 
@@ -364,7 +304,7 @@ def load_all():
         with open(IDS, "r") as rhand:
             repo_ids = json.load(rhand)
     except FileNotFoundError:
-        print("Please run 'pygit.set_all()' first")
+        print("Please run 'pygit.initialize()' first")
 
     for each in repo_ids.keys():
         yield load(each)
@@ -393,7 +333,7 @@ def status_all():
     print("Getting repository status...Please be patient")
     attention = []
 
-    status_path, timing = get_time_str(BASE_PATH)
+    status_path, timing = get_time_str(BASE_DIR)
 
     with open(status_path, 'w+') as fhand:
         fhand.write("Repository status as at {}".format(timing))
@@ -412,4 +352,4 @@ def status_all():
     _ = Popen(["notepad.exe", status_path])
 
 if __name__ == "__main__":
-    pass
+    initialize()
