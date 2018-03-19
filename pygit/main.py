@@ -17,9 +17,16 @@ USERHOME = os.path.abspath(os.path.expanduser('~'))
 DESKTOP = os.path.abspath(USERHOME + '/Desktop/')
 TIMING = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
 
+STATUS_DIR = os.path.join(DESKTOP ,"status")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SHELF_DIR = os.path.join(BASE_DIR, "name_shelf")
+SHELF_DIR = os.path.join(BASE_DIR, "shelves")
 TEST_DIR = os.path.join(BASE_DIR, "test_git/")
+
+def clear_screen():
+    if sys.platform == 'win32':
+        os.system('cls')
+    if sys.platform == 'linux':
+        os.system('clear')
 
 def cleanup():
     """Cleanup files"""
@@ -69,10 +76,8 @@ def need_attention(status):
     return False
 
 def initialize():
-    if sys.platform == 'win32':
-        os.system('cls')
-    if sys.platform == 'linux':
-        os.system('clear')
+    clear_screen()
+
     """Initialize the data necessary for pygit to operate
 
     Parameters
@@ -180,12 +185,12 @@ def initialize():
         name_shelf.close()
         index_shelf.close()
 
+    global STATUS_DIR
     if args.statusDirectory:
         STATUS_DIR = args.statusDirectory
         if args.verbosity:
             print("\nStatus files to be saved in {}\n".format(STATUS_DIR))
     else:
-        STATUS_DIR = os.path.join(DESKTOP ,"status")
         if args.verbosity:
             print("\nStatus files to be saved in {}\n".format(STATUS_DIR))
 
@@ -224,6 +229,12 @@ class Commands:
 
     def __str__(self):
         return "Commands: {}: {}".format(self.name, self.dir)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
 
     def __init__(self, repo_name, master_directory, git_exec=None, message="minor changes"):
         self.name = repo_name
@@ -331,22 +342,43 @@ class Commands:
     #     branch_name = re.search(r"\[origin\/(.*)\]", line)
     #     return branch_name.group(1)
 
-def repo_list():
+def show_repos():
     """Show all available repositories, path, and unique ID"""
-    os.system("cls")
+    clear_screen()
+    print("\nThe following repos are available.\n")
+    name_shelf = shelve.open(os.path.join(SHELF_DIR, "name_shelf"))
     index_shelf = shelve.open(os.path.join(SHELF_DIR, "index_shelf"))
 
-    for key in index_shelf:
-        print(key, index_shelf[key])
+    print("{:<4} {:<20} {:<}".format("Key", "| Name", "| Path"))
+    print("******************************************")
+    for key in index_shelf.keys():
+        name = index_shelf[key]
+        print("{:<4} {:<20} {:<}".format(key, name, name_shelf[name]))
     index_shelf.close()
-
-def load_repo(repo_id): # id is string
-    """Load a repository with specified id"""
-    name_shelf = shelve.open(os.path.join(SHELF_DIR, "name_shelf"))
-    repo = name_shelf[str(repo_id)]
     name_shelf.close()
 
-    return Commands(repo[0], repo[1])
+def load(input_string): # id is string
+    """Load a repository with specified id"""
+    name_shelf = shelve.open(os.path.join(SHELF_DIR, "name_shelf"))
+    index_shelf = shelve.open(os.path.join(SHELF_DIR, "index_shelf"))
+    input_string = str(input_string)
+
+    try:
+        int(input_string) # if not coercible into an integer, then its probably a repo name rather than ID
+        try:
+            name = index_shelf[input_string]
+            return Commands(name, name_shelf[name])
+        except KeyError:
+            raise Exception("That index does not exist.")
+            return
+    except ValueError:
+        try:
+            return Commands(input_string, name_shelf[input_string])
+        except KeyError:
+            raise Exception("That repository name does not exist")
+            return
+    index_shelf.close()
+    name_shelf.close()
 
 def load_set(*args):
     """Create `commands` object for a set of repositories
@@ -361,7 +393,7 @@ def load_set(*args):
     A list of commands objects. One for each of the entered string
     """
     for each in args:
-        yield load_repo(each)
+        yield load(each)
 
 def load_all():
     """Load all repositories
@@ -380,7 +412,7 @@ def load_all():
         print(key, name_shelf[key])
         if key == "last_index":
             continue
-        yield load_repo(key)
+        yield load(key)
 
 def pull_all():
     """Pull all repositories"""
@@ -399,37 +431,47 @@ def push_all():
         print("***", each.name, "***")
         print(each.push(), "\n")
 
-def status_all(STATUS_DIR):
+def status_all(status_dir=STATUS_DIR):
     """Write status of all repositories to text file"""
     os.system("cls")
     print("Getting repository status...Please be patient")
     attention = []
 
     try:
-        os.mkdir(STATUS_DIR)
+        os.mkdir(DESKTOP)
     except FileExistsError:
         pass
-    os.chdir(STATUS_DIR)
+    try:
+        os.mkdir(status_dir)
+    except FileExistsError:
+        pass
+    os.chdir(status_dir)
 
-    fname = "REPO_STATUS_@_{}.txt".format(TIMING)
+    fname = "REPO_STATUS_@_{}.md".format(TIMING)
 
     with open(fname, 'w+') as fhand:
-        fhand.write("Repository status as at {}".format(TIMING))
-        fhand.write("\n\n")
+        fhand.write("# Repository status as at {}".format(TIMING))
+        fhand.write("\n")
         for each in load_all():
             name = each.name
-            stat = each.status()
+            status = each.status()
 
-            heading = "*** {} ***".format(name)
-            fhand.write(heading + "\n")
-            fhand.write(stat + "\n\n\n")
+            heading = "## {}".format(name)
+            fhand.write(heading)
+            fhand.write("\n")
+            fhand.write(status)
+            fhand.write("\n")
 
-            if need_attention(stat):
+            if need_attention(status):
                 attention.append(name)
 
-        fhand.write("**"*25)
-        fhand.write("\nThe following repos need attention\n\n")
-        fhand.write("\n".join(attention))
+        fhand.write("-------")
+        fhand.write("\n## ATTENTION\n")
+
+        attentions = ["{}. {}".format(index+1, name) for index, name in enumerate(attention)]
+
+
+        fhand.write("\n".join(attentions))
     print("\n\nDone writing. Please check the status folder on your desktop")
     # _ = Popen(["notepad.exe", fname])
     os.chdir(BASE_DIR)
