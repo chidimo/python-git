@@ -104,10 +104,11 @@ def initialize():
 
     parser = argparse.ArgumentParser(prog="Pygit. Initialize pygit's working directories.")
     parser.add_argument("-v", "--verbosity", type=int, help="turn verbosity ON/OFF", choices=[0,1])
+    parser.add_argument("-r", "--rules", help="Set a list of string patterns for folders you don't want pygit to touch", nargs='+')
     parser.add_argument('-g', '--gitPath', help="Full pathname to git executable. cmd or bash.")
-    parser.add_argument('-p', '--masterDirectory', help="Full pathname to directory with multiple git repos.")
-    parser.add_argument('-r', '--simpleDirectory', help="A list of full pathname to individual git repos.", nargs='+')
-    parser.add_argument('-s', '--statusDirectory', help="Full pathname to directory for writing status.") # make mandatory
+    parser.add_argument('-m', '--masterDirectory', help="Full pathname to directory with multiple git repos.")
+    parser.add_argument('-s', '--simpleDirectory', help="A list of full pathname to individual git repos.", nargs='+')
+    parser.add_argument('-t', '--statusDirectory', help="Full pathname to directory for writing status.") # make mandatory
 
     args = parser.parse_args()
 
@@ -147,6 +148,13 @@ def initialize():
         for path, _, __ in os.walk(args.masterDirectory):
             if path.startswith("."):
                 continue
+            if args.rules:
+                # if any of the string patterns is found in path name, that folder will be skipped.
+                if any([rule in path for rule in args.rules]):
+                    if args.verbosity:
+                        print(path, " matches a rule. Skipping")
+                    continue
+
             directory_absolute_path = os.path.abspath(path)
 
             if is_git_repo(directory_absolute_path):
@@ -403,18 +411,16 @@ def load_multiple(*args, _all=False):
 
 def pull(*args, _all=False):
     """Pull all repositories"""
-    os.system("cls")
-    print("Pulling all directories\n\n")
-    for each in load_all():
+    print("Pull repositories\n\n")
+    for each in load_multiple(_all=True):
         print("***", each.name, "***")
         print(each.pull())
         print()
 
 def push(*args, _all=False):
     """Pull all repositories"""
-    os.system("cls")
-    print("Pushing all directories\n\n")
-    for each in load_all():
+    print("Push  directories\n\n")
+    for each in load_multiple(_all=True):
         print("***", each.name, "***")
         print(each.push(), "\n")
 
@@ -439,7 +445,7 @@ def all_status(status_dir=STATUS_DIR):
     with open(fname, 'w+') as fhand:
         fhand.write("# Repository status as at {}".format(TIMING))
         fhand.write("\n\n")
-        for each in load_all():
+        for each in load_multiple(_all=True):
             name = each.name
             status = each.status()
 
