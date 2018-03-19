@@ -1,8 +1,9 @@
 """Docstring"""
 
-from .main import (initialize, check_git_support, load, show_repos, load_set, cleanup,
-    status_all, load_all, push_all, pull_all
+from .main import (
+    cleanup, check_git_support, is_git_repo, need_attention, initialize,
+    Commands, show_repos, load, load_multiple, pull, push, all_status
 )
 
-__all__ = ["initialize", "check_git_support", "load", "show_repos", "load_set",
-           "cleanup", "status_all", "load_all", "push_all", "pull_all"]
+__all__ = ["all_status", "cleanup", "check_git_support", "is_git_repo", "need_attention", "initialize",
+           "Commands", "show_repos", "load", "load_multiple", "pull", "push", "all_status"]

@@ -1,2 +1,1 @@
-PyGit==2.1
 Send2Trash==1.5.0

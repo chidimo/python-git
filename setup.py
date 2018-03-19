@@ -4,11 +4,11 @@ from setuptools import setup
 
 def readme():
     """Readme"""
-    with open("README.rst") as rhand:
+    with open("README.md") as rhand:
         return rhand.read()
 
 setup(name='PyGit',
-      version='2.1',
+      version='3.0',
       description='Automate common git tasks',
       long_description=readme(),
       classifiers=[

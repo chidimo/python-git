@@ -380,7 +380,7 @@ def load(input_string): # id is string
     index_shelf.close()
     name_shelf.close()
 
-def load_set(*args):
+def load_multiple(*args, _all=False):
     """Create `commands` object for a set of repositories
 
     Parameters
@@ -392,29 +392,16 @@ def load_set(*args):
     ---------
     A list of commands objects. One for each of the entered string
     """
-    for each in args:
-        yield load(each)
 
-def load_all():
-    """Load all repositories
-
-    Yields
-    --------
-    command object of each repo
-    """
-    try:
+    if _all:
         name_shelf = shelve.open(os.path.join(SHELF_DIR, "name_shelf"))
-    except FileNotFoundError:
-        print("Please run 'pygit.initialize()' first")
-        return
+        for key in name_shelf.keys():
+            yield load(key)
+    else:
+        for each in args:
+            yield load(each)
 
-    for key in name_shelf.keys():
-        print(key, name_shelf[key])
-        if key == "last_index":
-            continue
-        yield load(key)
-
-def pull_all():
+def pull(*args, _all=False):
     """Pull all repositories"""
     os.system("cls")
     print("Pulling all directories\n\n")
@@ -423,7 +410,7 @@ def pull_all():
         print(each.pull())
         print()
 
-def push_all():
+def push(*args, _all=False):
     """Pull all repositories"""
     os.system("cls")
     print("Pushing all directories\n\n")
@@ -431,7 +418,7 @@ def push_all():
         print("***", each.name, "***")
         print(each.push(), "\n")
 
-def status_all(status_dir=STATUS_DIR):
+def all_status(status_dir=STATUS_DIR):
     """Write status of all repositories to text file"""
     os.system("cls")
     print("Getting repository status...Please be patient")
@@ -451,14 +438,14 @@ def status_all(status_dir=STATUS_DIR):
 
     with open(fname, 'w+') as fhand:
         fhand.write("# Repository status as at {}".format(TIMING))
-        fhand.write("\n")
+        fhand.write("\n\n")
         for each in load_all():
             name = each.name
             status = each.status()
 
             heading = "## {}".format(name)
             fhand.write(heading)
-            fhand.write("\n")
+            fhand.write("\n\n")
             fhand.write(status)
             fhand.write("\n")
 
@@ -470,10 +457,8 @@ def status_all(status_dir=STATUS_DIR):
 
         attentions = ["{}. {}".format(index+1, name) for index, name in enumerate(attention)]
 
-
         fhand.write("\n".join(attentions))
     print("\n\nDone writing. Please check the status folder on your desktop")
-    # _ = Popen(["notepad.exe", fname])
     os.chdir(BASE_DIR)
 
 if __name__ == "__main__":

@@ -9,19 +9,18 @@ from random import choice
 from send2trash import send2trash
 # import inspect
 
-from .gitty import (
-    Commands, set_search_paths, get_repos_and_git, set_input_data,
-    set_all, load
+from .pygit import (
+    USERHOME, DESKTOP, STATUS_DIR, BASE_DIR, SHELF_DIR, TEST_DIR, TIMING,
+    cleanup, check_git_support, is_git_repo, need_attention, initialize,
+    Commands, show_repos, load, load_multiple, pull, push, all_status
 )
-
-from paths import BASE_PATH, REPO_PATH, EXEC_PATH, SEARCH_PATHS, IDS
 
 class TestAppSetupA(unittest.TestCase):
     """Basic setup to test API"""
     def setUp(self):
         """Setup"""
         print("Start ", os.path.basename(__file__), " tests")
-        set_all(git_type="win")
+        initialize()
 
     def test_ids_exist(self): # always regen for this test to work
         """Test id file created and that its content is a dictionary"""
