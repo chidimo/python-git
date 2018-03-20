@@ -1,6 +1,5 @@
 MANIFEST.in
 README.rst
-license.txt
 setup.py
 PyGit.egg-info/PKG-INFO
 PyGit.egg-info/SOURCES.txt
