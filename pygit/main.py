@@ -1,8 +1,5 @@
 """pygit"""
 
-# https://stackoverflow.com/questions/19687394/python-script-to-determine-if-a-directory-is-a-git-repository
-# http://gitpython.readthedocs.io/en/stable/
-
 import os
 import sys
 import shutil

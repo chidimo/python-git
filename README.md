@@ -26,7 +26,9 @@ Just unzip it and place it somewhere on your disk. You'll need to tell `pygit` w
 
 ## Installation
 
-Github, `pip install https://github.com/immensity/pygit/archive/3.0.tar.gz` or PyPI `pip install pygit --upgrade`
+  `pip install https://github.com/immensity/pygit/archive/3.0.tar.gz`
+
+  `pip install pygit --upgrade`
 
 ## Usage
 
@@ -162,3 +164,15 @@ Write tests
 Run test after importation to make sure every other thing works fine.
 
 Define an update function that updates the repo dictionaries for the case when a new repo is added but the overall directory structure remains unchanged.
+
+Git search pathsep
+
+git check locations
+
+C:\Program Files\Git\cmd\git.exe
+C:\Program Files (x86)\Git\cmd\git.exe
+C:\Program Files\Git\cmd\git.exe
+C:\Users\Chidimma\AppData\Local\Programs\Git\cmd\git.exe
+
+# https://stackoverflow.com/questions/19687394/python-script-to-determine-if-a-directory-is-a-git-repository
+# http://gitpython.readthedocs.io/en/stable/
