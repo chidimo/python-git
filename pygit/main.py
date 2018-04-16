@@ -43,6 +43,9 @@ def check_git_support():
     ps = call("git --version", shell=True)
     if ps == 0:
         return True
+
+    search_paths = [r"C:\Program Files\Git\cmd\git.exe", r"C:\Program Files (x86)\Git\cmd\git.exe",
+    r"C:\Program Files\Git\cmd\git.exe", r"C:\Users\Chidimma\AppData\Local\Programs\Git\cmd\git.exe"]
     # search for git in repositories before finally giving up.
     # perhaps git is not in path
     return False

@@ -176,3 +176,8 @@ C:\Users\Chidimma\AppData\Local\Programs\Git\cmd\git.exe
 
 # https://stackoverflow.com/questions/19687394/python-script-to-determine-if-a-directory-is-a-git-repository
 # http://gitpython.readthedocs.io/en/stable/
+
+C:\Program Files\Git\cmd\git.exe
+C:\Program Files (x86)\Git\cmd\git.exe
+C:\Program Files\Git\cmd\git.exe
+C:\Users\Chidimma\AppData\Local\Programs\Git\cmd\git.exe
