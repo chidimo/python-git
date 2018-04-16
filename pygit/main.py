@@ -9,7 +9,7 @@ import shutil
 import shelve
 import argparse
 from datetime import datetime
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT, check_call, call, run
 
 from send2trash import send2trash
 
@@ -43,27 +43,22 @@ def kill_process(process):
 
 def check_git_support():
     """Check if a git repo can be initialized in present shell"""
-    try:
-        os.mkdir(TEST_DIR)
-    except FileExistsError:
-        shutil.rmtree(TEST_DIR)
-        os.mkdir(TEST_DIR)
-
-    os.chdir(TEST_DIR)
-    process = Popen("git init", shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-    output, _ = process.communicate()
-    msg = str(output.decode("utf-8"))
-    # print(msg)
-    if "Initialized empty Git repository" in msg:
-        os.chdir(BASE_DIR)
-        shutil.rmtree(TEST_DIR)
+    ps = call("git --version", shell=True)
+    if ps == 0:
         return True
+    # search for git in repositories before finally giving up.
+    # perhaps git is not in path
     return False
 
 def is_git_repo(directory):
     """Determine if a folder is a git repo
     Checks for the presence of a .git folder inside a directory
     """
+    ps = call("git status", shell=True)
+    if ps == 0:
+        return True
+    return False
+
     if ".git" in os.listdir(directory):
         return True
     return False
@@ -125,7 +120,7 @@ def initialize():
     else:
         if check_git_support():
             if args.verbosity:
-                print("Your system supports git out of the box.\n")
+                print("Your system supports git.\n")
         elif "git" in os.environ['PATH']:
             user_paths = os.environ['PATH'].split(os.pathsep)
             for path in user_paths:
@@ -139,14 +134,14 @@ def initialize():
             print("Git was not found in your system path.\nYou may need to set the location manually using the -g flag.\n")
 
     if args.masterDirectory:
-
         if args.verbosity:
             print("Master directory set to ", args.masterDirectory, "\n")
-            print("Now working on folders ... Please wait a few minutes.\n")
+            print("Now looking inside folders ... Please wait a few minutes.\n")
 
         i = len(list(index_shelf.keys())) + 1
         for path, _, __ in os.walk(args.masterDirectory):
-            if path.startswith("."):
+            bad_file_starts = [".", "_"] # skip folders that start with any of these characters
+            if any([path.startswith(each) for each in bad_file_starts]) :
                 continue
             if args.rules:
                 # if any of the string patterns is found in path name, that folder will be skipped.
@@ -163,6 +158,8 @@ def initialize():
                 if sys.platform == 'linux':
                     name = directory_absolute_path.split("/")[-1]
 
+                if args.verbosity:
+                    print("Now shelving ", name)
                 name_shelf[name] = directory_absolute_path
                 index_shelf[str(i)] = name
                 i += 1
@@ -171,8 +168,7 @@ def initialize():
 
     if args.simpleDirectory:
         if args.verbosity:
-            print("Now shelving the following directories\n")
-            print(args.simpleDirectory)
+            print("Now shelving ", args.simpleDirectory)
 
         i = len(list(index_shelf.keys())) + 1
         for directory in args.simpleDirectory:
