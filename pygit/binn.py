@@ -1,5 +1,7 @@
 """Graphical directory selection"""
 
+import os, sys, site
+
 try:
     import tkinter as tk
     from tkinter import filedialog
@@ -20,8 +22,6 @@ def select_directory(title="Select directory"):
     except:
         print("Tk inter was not found.")
     return root_dir
-
-import os, sys, site
 
 # https://stackoverflow.com/questions/36187264/how-to-get-installation-directory-using-setuptools-and-pkg-ressources
 def binaries_directory():
