@@ -1,5 +1,4 @@
 # python-git
-============
 
 Automate the boring git stuff with python
 
@@ -26,9 +25,9 @@ Just unzip it and place it somewhere on your disk. Later (during initialization)
 
 ## Installation
 
-  `pip install https://github.com/immensity/pygit/archive/3.0.tar.gz`
+  `pip install https://github.com/immensity/python-git/archive/3.0.tar.gz`
 
-  `pip install pygit --upgrade`
+  `pip install python-git --upgrade`
 
 ## Usage
 
@@ -37,7 +36,7 @@ Upon successful installation, the below command should return a blank screen
    import pygit
 
 ## Usage
-To use `pygit`, you have to tell it exactly two things, depending on your system setup.
+To use `python-git`, you have to tell it exactly two things, depending on your system setup.
 
 1. The location of your `git` repositories. You may do this by passing it a list of strings on the command line.
 Each string represents a full path name to single directory. You may also just provide a single directory which holds
@@ -134,14 +133,12 @@ performs a **push** action on all your repositories at once. Its  `return` value
 
 returns a  `generator`  of  `Commands`  object for every repository.
 
-To do
-======
+## To do
 
 Add **git-bash.exe**
 
 Implement Commands.branch()
 
-Find out why importing pygit for first time gives an PermissionError
 Write tests
 
 Run test after importation to make sure every other thing works fine.
@@ -157,8 +154,9 @@ C:\Program Files (x86)\Git\cmd\git.exe
 C:\Program Files\Git\cmd\git.exe
 C:\Users\Chidimma\AppData\Local\Programs\Git\cmd\git.exe
 
-# https://stackoverflow.com/questions/19687394/python-script-to-determine-if-a-directory-is-a-git-repository
-# http://gitpython.readthedocs.io/en/stable/
+https://stackoverflow.com/questions/19687394/python-script-to-determine-if-a-directory-is-a-git-repository
+
+http://gitpython.readthedocs.io/en/stable/
 
 https://simpleisbetterthancomplex.com/tips/2017/08/11/django-tip-21-redirects-app.html
 
