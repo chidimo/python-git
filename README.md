@@ -25,7 +25,7 @@ Just unzip it and place it somewhere on your disk. Later (during initialization)
 
 ## Installation
 
-  `pip install https://github.com/immensity/python-git/archive/3.0.tar.gz`
+  `pip install https://github.com/immensity/python-git/archive/3.1.tar.gz`
 
   `pip install python-git --upgrade`
 
