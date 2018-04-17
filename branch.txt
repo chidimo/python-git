@@ -1,2 +1,0 @@
-  master    032c0fb [origin/master] README.rst edited online with Bitbucket
-* master2.0 f001660 [origin/master2.0] api.py edited online: replaced call with Popen
