@@ -71,7 +71,7 @@ def readme():
     with open("README.md") as rhand:
         return rhand.read()
 
-setup(name='pygit',
+setup(name='python-git',
       version='3.0',
       description='Automate common git tasks',
       long_description=readme(),

@@ -1,4 +1,4 @@
-# PyGit
+# python-git
 ============
 
 Automate the boring git stuff with python
@@ -17,11 +17,11 @@ In short, what needs attention so as to avoid those troubling merge conflicts.
 
 The only requirements in terms of software is `send2trash` which helps take care of cleaning up stuff.
 Other thing you need is a computer with `git` either accessible from the command line (which means its in your system path) or as a standalone file somewhere in your system.
-If you're working on PC without installation rights, you can use a portable `git` and `pygit` will work just fine.
+If you're working on PC without installation rights, you can use a portable `git` and `python-git` will work just fine.
 
 You can get a portable git version from [here](https://git-scm.com/download/win)
 
-Just unzip it and place it somewhere on your disk. Later (during initialization), you'll need to tell `pygit` where this file is located.
+Just unzip it and place it somewhere on your disk. Later (during initialization), you'll need to tell `python-git` where this file is located.
 
 
 ## Installation
