@@ -12,41 +12,56 @@ from subprocess import call
 from setuptools import setup
 from setuptools.command.install import install as _install
 
-# def get_package_install_directory():
-#     """Return the installation directory, or None"""
-#     if '--user' in sys.argv:
-#         paths = (site.getusersitepackages(),)
-#     else:
-#         py_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
-#         paths = (s % (py_version) for s in (
-#             sys.prefix + '/lib/python%s/dist-packages/',
-#             sys.prefix + '/lib/python%s/site-packages/',
-#             sys.prefix + '/local/lib/python%s/dist-packages/',
-#             sys.prefix + '/local/lib/python%s/site-packages/',
-#             '/Library/Python/%s/site-packages/',
-#         ))
-#         paths = tuple(paths) + (
-#             # these paths likely work for anaconda install
-#             sys.prefix + '/lib/dist-packages/',
-#             sys.prefix + '/lib/site-packages/',
-#             sys.prefix + '/local/lib/dist-packages/',
-#             sys.prefix + '/local/lib/site-packages/',
-#         )
+# def get_site_packages_directory():
+#     """Returns site packages directory"""
+#     # try iterating over sys.path
+#     try:
+#         return next(p for p in sys.path if 'site-packages' in p)
+#     except StopIteration:
+#         pass
 
+#     # try manually constructing the path and check if it exists
+#     py_version = '{}.{}'.format(sys.version_info[0], sys.version_info[1])
+
+#     prefix_paths = [
+#         sys.prefix + '/lib/python{}/dist-packages/',
+#         sys.prefix + '/lib/python{}/site-packages/',
+#         sys.prefix + '/local/lib/python{}/dist-packages/',
+#         sys.prefix + '/local/lib/python{}/site-packages/',
+#         '/Library/Python/{}/site-packages/',
+#     ]
+
+#     py_installation_paths = [each.format(py_version) for each in prefix_paths]
+#     paths = py_installation_paths + [
+#         # these paths for versionless installs like jupyter
+#         sys.prefix + '/lib/dist-packages/',
+#         sys.prefix + '/lib/site-packages/',
+#         sys.prefix + '/local/lib/dist-packages/',
+#         sys.prefix + '/local/lib/site-packages/',
+#     ]
 #     for path in paths:
 #         if os.path.exists(path):
-#             print("++++++++path exists", path)
-#             install_path = path + 'chi'# build path to file
-#             # site.addsitedir(install_path) # add the installation dir to path. my main aim
 #             return path
-#     print('no installation path found')
 #     return None
 
+# def add_initialize_directory_to_system_path(install_directory):
+#     """Adds the initialize.py file to path"""
+#     if os.path.exists(install_directory):
+#         program_directory = '{}/pygit-3.0-py3.6.egg/pygit'.format(install_directory)
+#         print('\n\nTo initialize pygit, please run')
+#         print('\t', program_directory + '/initialize.py')
+#         print('with the appropriate command line arguments\n\n')
+#     else:
+#         print('Program directory, ', install_directory, ' is missing')
+#     return
+
 # def _post_install(dir):
-#     get_package_install_directory()
+#     install_dir = get_site_packages_directory()
+#     add_initialize_directory_to_system_path(install_dir)
 
 # class install(_install):
 #     def run(self):
+#         print("USING CUSTOM INSTALLL")
 #         _install.run(self)
 #         self.execute(_post_install, (self.install_lib,),
 #                      msg="Running post install task")
@@ -65,8 +80,8 @@ setup(name='pygit',
           'Programming Language :: Python :: 3.6.1',
           'Topic :: Git :: Automation',
       ],
-      keywords='git and github task automation',
-      url='',
+      keywords='automate boring git and github tasks',
+      url='https://github.com/immensity/pygit',
       author='Chidi Orji',
       author_email='orjichidi95@gmail.com',
       license='MIT',

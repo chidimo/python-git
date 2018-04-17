@@ -16,12 +16,12 @@ In short, what needs attention so as to avoid those troubling merge conflicts.
 ## Requirements
 
 The only requirements in terms of software is `send2trash` which helps take care of cleaning up stuff.
-Other thing you need is a computer with `git` accessible from the command line. If you're on a computer
-where you don't have permission to install stuff, you can do with a portable `git` and `pygit` will work just fine.
+Other thing you need is a computer with `git` either accessible from the command line (which means its in your system path) or as a standalone file somewhere in your system.
+If you're working on PC without installation rights, you can use a portable `git` and `pygit` will work just fine.
 
 You can get a portable git version from [here](https://git-scm.com/download/win)
 
-Just unzip it and place it somewhere on your disk. You'll need to tell `pygit` where this file is during intitialization.
+Just unzip it and place it somewhere on your disk. Later (during initialization), you'll need to tell `pygit` where this file is located.
 
 
 ## Installation
@@ -32,23 +32,25 @@ Just unzip it and place it somewhere on your disk. You'll need to tell `pygit` w
 
 ## Usage
 
-Upon successful installation do
+Upon successful installation, the below command should return a blank screen
 
    import pygit
 
-A successful import returns a blank screen.
+## Usage
+To use `pygit`, you have to tell it exactly two things, depending on your system setup.
 
-To use `pygit`, you have to tell it where your `git` repositories are. You may do this by passing it a list of strings on the command line.
-Each string represents a full path name to single directory.
+1. The location of your `git` repositories. You may do this by passing it a list of strings on the command line.
+Each string represents a full path name to single directory. You may also just provide a single directory which holds
+multiple git repositories and `pygit` will grab all the repositories for your.
+
+1. The location of a `git` executable. This only applies if `git` is not accessible from your system `cmd`. That is, `git` is
+2. not in your system path. More on this below.
 
 If you have a master directory that holds multiple `git` repositories, `pygit` can also take the full path name of this master directory
 and then index the git repositories it finds there. It won't index those directories that are not git repos.
 
 It is also possible to tell `pygit` not to index certain directories by specifying the starting string of the directory name. This is referred
 to s a `rule`. Directories matching such rules will not be touched.
-
-
-
 
 To initialize `pygit`, run
 
@@ -130,26 +132,7 @@ performs a **push** action on all your repositories at once. Its  `return` value
 
    pygit.load_all()
 
-
 returns a  `generator`  of  `Commands`  object for every repository.
-
-
-API
-=====
-.. automodule :: pygit.api
-   :members:
-
-Commands
-=============
-
-.. automodule :: pygit.commands
-   :members:
-
-Utility Functions
-=======================
-
-.. automodule :: pygit.utils
-   :members:
 
 To do
 ======
@@ -176,3 +159,9 @@ C:\Users\Chidimma\AppData\Local\Programs\Git\cmd\git.exe
 
 # https://stackoverflow.com/questions/19687394/python-script-to-determine-if-a-directory-is-a-git-repository
 # http://gitpython.readthedocs.io/en/stable/
+
+https://simpleisbetterthancomplex.com/tips/2017/08/11/django-tip-21-redirects-app.html
+
+https://simpleisbetterthancomplex.com/tutorial/2017/08/20/how-to-use-celery-with-django.html
+
+https://realpython.com/asynchronous-tasks-with-django-and-celery/
