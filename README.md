@@ -34,7 +34,6 @@ Upon successful installation, the below command should return a blank screen
 
    import pygit
 
-## Usage
 To use `python-git`, you have to tell it exactly two things, depending on your system setup.
 
 1. The location of your `git` repositories. You may do this by passing it a list of strings on the command line.
