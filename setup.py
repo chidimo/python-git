@@ -72,7 +72,7 @@ def readme():
         return rhand.read()
 
 setup(name='python-git',
-      version='3.5',
+      version='3.6',
       description='Automate boring git tasks',
       long_description=readme(),
       classifiers=[

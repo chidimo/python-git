@@ -98,13 +98,10 @@ def is_git_repo(directory):
     Determine if a folder is a git repo
     Checks the 'git status' message for error
     """
-    proc = Popen(['git status'], shell=True, stdout=PIPE,)
-    msg, ab = proc.communicate()
-    msg = msg.decode('utf-8')
-
-    if "fatal: Not a git repository" in msg:
-        return False
-    return True
+    files = os.listdir(directory)
+    if '.git' in files:
+        return True
+    return False
 
 def need_attention(status_msg):
     """Return True if a repo status is not same as that of remote"""
@@ -162,8 +159,7 @@ def initialize():
 
     else:
         if check_git_support():
-            if args.verbosity:
-                print("Your system supports git.\n")
+            print("Your system supports git.\n")
         elif "git" in os.environ['PATH']:
             user_paths = os.environ['PATH'].split(os.pathsep)
             for path in user_paths:
@@ -182,27 +178,38 @@ def initialize():
             print("Now looking inside folders ... Please wait a few minutes.\n")
 
         i = len(list(index_shelf.keys())) + 1
-        for path, _, __ in os.walk(args.masterDirectory):
-            bad_file_starts = [".", "_"] # skip folders that start with any of these characters
-            if any([path.startswith(each) for each in bad_file_starts]) :
+
+        folder_paths = [
+            name for name in os.listdir(args.masterDirectory) \
+            if os.path.isdir(os.path.join(args.masterDirectory, name))
+        ]
+
+        for name in folder_paths:
+            bad_folder_starts = [".", "_"] # skip folders that start with any of these characters
+            if any([name.startswith(each) for each in bad_folder_starts]) :
+                if args.verbosity:
+                    print(name, " starts with one of ", bad_folder_starts, " skipping\n")
                 continue
+            path = os.path.join(args.masterDirectory, name)
             if args.rules:
                 # if any of the string patterns is found in path name, that folder will be skipped.
                 if any([rule in path for rule in args.rules]):
                     if args.verbosity:
-                        print(path, " matches a rule. Skipping")
+                        print(path, " matches a rule. Skipping\n")
                     continue
 
             directory_absolute_path = os.path.abspath(path)
 
             if is_git_repo(directory_absolute_path):
+                if args.verbosity:
+                    print(directory_absolute_path, " is a git repository")
                 if sys.platform == 'win32':
                     name = directory_absolute_path.split("\\")[-1]
                 if sys.platform == 'linux':
                     name = directory_absolute_path.split("/")[-1]
 
                 if args.verbosity:
-                    print("Now shelving ", name)
+                    print("Now shelving ", name, "\n")
                 name_shelf[name] = directory_absolute_path
                 index_shelf[str(i)] = name
                 i += 1
@@ -210,22 +217,21 @@ def initialize():
         index_shelf.close()
 
     if args.simpleDirectory:
-        if args.verbosity:
-            print("Now shelving ", args.simpleDirectory)
 
         i = len(list(index_shelf.keys())) + 1
         for directory in args.simpleDirectory:
 
             if is_git_repo(directory):
+                if args.verbosity:
+                    print("Now shelving ", args.simpleDirectory, "\n")
                 if sys.platform == 'win32':
                     name = directory.split("\\")[-1]
                 if sys.platform == 'linux':
                     name = directory.split("/")[-1]
-
                 name_shelf[name] = directory
                 index_shelf[str(i)] = name
             else:
-                print(directory, " is not a valid git repo.\nContinuing...")
+                print(directory, " is not a valid git repo.\nContinuing...\n")
                 continue
             i += 1
 

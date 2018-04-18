@@ -258,7 +258,7 @@ def all_status(status_dir=STATUS_DIR):
         attentions = ["{}. {}".format(index+1, name) for index, name in enumerate(attention)]
 
         fhand.write("\n".join(attentions))
-    print("\n\nDone writing. Please check the status folder")
+    print("\n\nDone writing. Please find status folder in ", STATUS_DIR)
     os.chdir(BASE_DIR)
 
 if __name__ == "__main__":
