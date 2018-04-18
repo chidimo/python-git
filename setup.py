@@ -72,8 +72,8 @@ def readme():
         return rhand.read()
 
 setup(name='python-git',
-      version='3.4',
-      description='Automate common git tasks',
+      version='3.5',
+      description='Automate boring git tasks',
       long_description=readme(),
       classifiers=[
           'Development Status :: 5 - Production/Stable',
@@ -88,7 +88,7 @@ setup(name='python-git',
       ],
       keywords='automate boring git and github tasks',
       url='https://github.com/immensity/pygit',
-      download_url='https://codeload.github.com/immensity/python-git/zip/master`',
+      download_url='https://codeload.github.com/immensity/python-git/zip/master',
       author='Chidi Orji',
       author_email='orjichidi95@gmail.com',
       license='MIT',
