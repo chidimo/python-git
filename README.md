@@ -22,10 +22,9 @@ You can get a portable git version from [here](https://git-scm.com/download/win)
 
 Just unzip it and place it somewhere on your disk. Later (during initialization), you'll need to tell `python-git` where this file is located.
 
-
 ## Installation
 
-  `pip install https://github.com/immensity/python-git/archive/3.1.tar.gz`
+  `pip install https://codeload.github.com/immensity/python-git/zip/master`
 
   `pip install python-git --upgrade`
 
@@ -112,7 +111,6 @@ like below
       each.add_commit()
 
    pygit.all_status()
-
 
 performs a **status** command on all your repositories. The result is written to a text file. The text file opens automatically.
 The name of the file shows the date and time of the status request. All batch status request is written to its a separate file.

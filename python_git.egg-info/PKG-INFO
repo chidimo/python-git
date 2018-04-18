@@ -1,12 +1,12 @@
 Metadata-Version: 1.1
 Name: python-git
-Version: 3.1
+Version: 3.3
 Summary: Automate common git tasks
 Home-page: https://github.com/immensity/pygit
 Author: Chidi Orji
 Author-email: orjichidi95@gmail.com
 License: MIT
-Download-URL: https://github.com/immensity/python-git/archive/3.1.tar.gz`
+Download-URL: https://codeload.github.com/immensity/python-git/zip/master`
 Description: # python-git
         
         Automate the boring git stuff with python
@@ -31,10 +31,9 @@ Description: # python-git
         
         Just unzip it and place it somewhere on your disk. Later (during initialization), you'll need to tell `python-git` where this file is located.
         
-        
         ## Installation
         
-          `pip install https://github.com/immensity/python-git/archive/3.1.tar.gz`
+          `pip install https://codeload.github.com/immensity/python-git/zip/master`
         
           `pip install python-git --upgrade`
         
@@ -121,7 +120,6 @@ Description: # python-git
               each.add_commit()
         
            pygit.all_status()
-        
         
         performs a **status** command on all your repositories. The result is written to a text file. The text file opens automatically.
         The name of the file shows the date and time of the status request. All batch status request is written to its a separate file.

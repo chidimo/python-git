@@ -1,6 +1,5 @@
 MANIFEST.in
 README.md
-license.txt
 setup.py
 pygit/__init__.py
 pygit/initialize.py
