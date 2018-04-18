@@ -2,7 +2,6 @@ MANIFEST.in
 README.md
 setup.py
 pygit/__init__.py
-pygit/initialize.py
 pygit/main.py
 pygit/test.py
 python_git.egg-info/PKG-INFO

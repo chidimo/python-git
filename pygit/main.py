@@ -54,10 +54,12 @@ def get_site_packages_directory():
 def show_help():
     """How to call the initialization program"""
     site_package_directory = get_site_packages_directory()
-    source_directory = '{}/pygit/main.py'.format(site_package_directory)
+    source_directory_1 = '{}/pygit/main.py'.format(site_package_directory)
+    source_directory_2 = '{}/python_git-3.9-py3.6.egg/pygit/main.py'.format(site_package_directory)
     print('\n\nTo initialize pygit, run')
-    print('python ', source_directory)
-    print('run \npython ', source_directory, ' -h', '\nfor help')
+    print('\tpython ', source_directory_1, 'OR')
+    print('\tpython ', source_directory_2)
+    print("Include the -h flag for help")
     return
 
 def clear_screen():
@@ -102,6 +104,14 @@ def is_git_repo(directory):
     """
     files = os.listdir(directory)
     if '.git' in files:
+        return True
+    return False
+
+
+def need_attention(status_msg):
+    """Return True if a repo status is not exactly same as that of remote"""
+    msg = ["not staged", "behind", "ahead", "Untracked"]
+    if any([each in status_msg for each in msg]):
         return True
     return False
 
@@ -330,7 +340,6 @@ class Commands:
             process = Popen([self.git_exec, stage_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         else:
             process = Popen(stage_file, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -342,8 +351,6 @@ class Commands:
             process = Popen([self.git_exec, stage_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         else:
             process = Popen(stage_file, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-
-        process = Popen([self.git_exec, stage_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -369,19 +376,28 @@ class Commands:
 
     def push(self):
         """git push"""
-        process = Popen([self.git_exec, ' git push'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        if self.git_exec:
+            process = Popen([self.git_exec, ' git push'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        else:
+            process = Popen(['git push'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,)
         output, _ = process.communicate()
         return str("Push completed.{}".format(str(output.decode("utf-8"))))
 
     def pull(self):
         """git pull"""
-        process = Popen([self.git_exec, ' git pull'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        if self.git_exec:
+            process = Popen([self.git_exec, ' git pull'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        else:
+            process = Popen(['git pull'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,)
         output, _ = process.communicate()
         return str("Pull completed.\n{}".format(str(output.decode("utf-8"))))
 
     def reset(self, number='1'):
         """git reset"""
-        process = Popen([self.git_exec, ' git reset HEAD~', number], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        if self.git_exec:
+            process = Popen([self.git_exec, ' git reset HEAD~', number], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+        else:
+            process = Popen(['git reset HEAD~', number], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
@@ -504,8 +520,8 @@ def all_status(status_dir=STATUS_DIR):
             fhand.write(status)
             fhand.write("\n")
 
-            if each.need_attention(status):
-                print(name, " needs attention")
+            if need_attention(status):
+                print("\n\n***", name, "*** needs attention\n\n")
                 attention.append(name)
 
         fhand.write("-------")
@@ -516,6 +532,7 @@ def all_status(status_dir=STATUS_DIR):
         fhand.write("\n".join(attentions))
     print("\n\nDone writing. Please find status files in ", STATUS_DIR)
     os.chdir(BASE_DIR)
+    return
 
 if __name__ == "__main__":
     initialize()

@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: python-git
-Version: 3.6
+Version: 3.9
 Summary: Automate boring git tasks
 Home-page: https://github.com/immensity/pygit
 Author: Chidi Orji
@@ -43,7 +43,6 @@ Description: # python-git
         
            import pygit
         
-        ## Usage
         To use `python-git`, you have to tell it exactly two things, depending on your system setup.
         
         1. The location of your `git` repositories. You may do this by passing it a list of strings on the command line.
