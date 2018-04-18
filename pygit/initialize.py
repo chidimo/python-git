@@ -49,18 +49,16 @@ def get_site_packages_directory():
             return path
     return None
 
-def how_to():
+def help():
     """How to call the initialization program"""
     site_package_directory = get_site_packages_directory()
-    source_directory = os.path.abspath(
-        os.path.join(site_package_directory, '/pygit/initialize.py')
-        )
-    # source_directory = '{}/pygit/initialize.py'.format(site_package_directory)
+    source_directory = '{}/pygit/initialize.py'.format(site_package_directory)
     # source_directory = '{}/python-git-3.2-py3.6.egg/pygit/initialize.py'.format(site_package_directory)
     print('\n\nTo initialize pygit, run')
-    print('\tpython', source_directory)
+    print('python', source_directory)
     print('with the relevant command line arguments\n\n')
-    print('\t run ', source_directory + '/initialize.py -h for help')
+    help = source_directory + ' -h'
+    print('run \n', help, '\nfor help')
     return
 
 def clear_screen():
