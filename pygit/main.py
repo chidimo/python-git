@@ -55,10 +55,14 @@ def show_help():
     """How to call the initialization program"""
     site_package_directory = get_site_packages_directory()
     source_directory_1 = '{}/pygit/main.py'.format(site_package_directory)
-    source_directory_2 = '{}/python_git-3.9-py3.6.egg/pygit/main.py'.format(site_package_directory)
-    print('\n\nTo initialize pygit, run')
-    print('\tpython ', source_directory_1, 'OR')
-    print('\tpython ', source_directory_2)
+    source_directory_2 = '{}/python_git-4.0-py3.6.egg/pygit/main.py'.format(site_package_directory)
+    print('\n\nTo initialize pygit, run\n')
+    if os.path.exists(source_directory_1):
+        print('\tpython ', source_directory_1)
+    elif os.path.exists(source_directory_2):
+        print('\tpython ', source_directory_2)
+    else:
+        print("Installation not found")
     print("Include the -h flag for help")
     return
 
