@@ -16,7 +16,7 @@ def readme():
 
 
 setup(name='python-git',
-      version='4.1',
+      version='4.2',
       description='Automate boring git tasks',
       long_description=readme(),
       classifiers=[

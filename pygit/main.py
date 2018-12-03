@@ -5,8 +5,9 @@ import sys
 import shutil
 import shelve
 import argparse
+import logging
 
-from pathlib import Path
+from pathlib import Path, PurePath
 from datetime import datetime
 from subprocess import Popen, PIPE, STDOUT
 
@@ -15,10 +16,25 @@ from send2trash import send2trash
 USERHOME = Path.home()
 DESKTOP = USERHOME / 'Desktop'
 STATUS_DIR = DESKTOP / "status"
-BASE_DIR = Path().resolve()
+BASE_DIR = Path().resolve() / 'pygit'
 SHELF_DIR = Path.joinpath(BASE_DIR, "shelf-dir")
 TEST_DIR = Path.joinpath(BASE_DIR, "test-dir")
 TIME_STAMP = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
+
+
+def new_logger(log_file_name):
+    FORMATTER = logging.Formatter("%(asctime)s:%(funcName)s:%(levelname)s\n%(message)s")
+    # console_logger = logging.StreamHandler(sys.stdout)
+    file_logger = logging.FileHandler(log_file_name)
+    file_logger.setFormatter(FORMATTER)
+
+    logger = logging.getLogger(log_file_name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(file_logger)
+    logger.propagate = False
+    return logger
+
+pygit_logger = new_logger('pygit_logger.log')
 
 
 def clear_screen():
@@ -98,8 +114,8 @@ def initialize():
         shutil.rmtree(SHELF_DIR)
         Path.mkdir(SHELF_DIR)
 
-    name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
-    index_shelf = shelve.open(Path.joinpath(SHELF_DIR, "index_shelf"))
+    name_shelf = shelve.open(str(PurePath(SHELF_DIR / "name_shelf"))) # Use the string representation to open path to avoid errors
+    index_shelf = shelve.open(str(PurePath(SHELF_DIR / "index_shelf")))
 
     parser = argparse.ArgumentParser(prog="Pygit. Initialize pygit's working directories.")
     parser.add_argument("-v", "--verbosity", type=int, help="turn verbosity ON/OFF", choices=[0,1])
@@ -143,26 +159,27 @@ def initialize():
 
         i = len(list(index_shelf.keys())) + 1
 
-        folder_paths = [
-            name for name in os.listdir(args.masterDirectory) \
-            if os.path.isdir(Path.joinpath(args.masterDirectory, name))
-        ]
+        folder_paths = [x for x in Path(args.masterDirectory).iterdir() if x.is_dir()]
+        pygit_logger.debug(folder_paths)
+        for e in folder_paths:
+            pygit_logger.debug(e)
 
-        for name in folder_paths:
+        for folder_name in folder_paths:
             bad_folder_starts = [".", "_"] # skip folders that start with any of these characters
-            if any([name.startswith(each) for each in bad_folder_starts]) :
+            if any([str(PurePath(folder_name)).startswith(each) for each in bad_folder_starts]) :
                 if args.verbosity:
-                    print(name, " starts with one of ", bad_folder_starts, " skipping\n")
+                    pygit_logger.debug(folder_name, " starts with one of ", bad_folder_starts, " skipping\n")
                 continue
-            path = Path.joinpath(args.masterDirectory, name)
+
+            path = Path(args.masterDirectory) / folder_name
             if args.rules:
-                # if any of the string patterns is found in path name, that folder will be skipped.
+                # if any of the string patterns is found in path folder_name, that folder will be skipped.
                 if any([rule in path for rule in args.rules]):
                     if args.verbosity:
-                        print(path, " matches a rule. Skipping\n")
+                        pygit_logger.debug(path, " matches a rule. Skipping\n")
                     continue
 
-            directory_absolute_path = os.path.abspath(path)
+            directory_absolute_path = Path(path).resolve()
 
             if is_git_repo(directory_absolute_path):
                 if sys.platform == 'win32':
@@ -211,8 +228,8 @@ def initialize():
 
     if args.verbosity:
         print("\nDone.\nThe following directories were set.\n")
-        name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
-        index_shelf = shelve.open(Path.joinpath(SHELF_DIR, "index_shelf"))
+        name_shelf = shelve.open(str(PurePath(SHELF_DIR / "name_shelf")))
+        index_shelf = shelve.open(str(PurePath(SHELF_DIR / "index_shelf")))
 
         print("{:<4} {:<20} {:<}".format("Key", "| Name", "| Path"))
         print("*********************************")
@@ -377,8 +394,8 @@ def show_repos():
     """Show all available repositories, path, and unique ID"""
     clear_screen()
     print("\nThe following repos are available.\n")
-    name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
-    index_shelf = shelve.open(Path.joinpath(SHELF_DIR, "index_shelf"))
+    name_shelf = shelve.open(str(PurePath(SHELF_DIR / "name_shelf")))
+    index_shelf = shelve.open(str(PurePath(SHELF_DIR / "index_shelf")))
 
     print("{:<4} {:<20} {:<}".format("Key", "| Name", "| Path"))
     print("******************************************")
@@ -390,8 +407,8 @@ def show_repos():
 
 def load(input_string): # id is string
     """Load a repository with specified id"""
-    name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
-    index_shelf = shelve.open(Path.joinpath(SHELF_DIR, "index_shelf"))
+    name_shelf = shelve.open(str(PurePath(SHELF_DIR / "name_shelf")))
+    index_shelf = shelve.open(str(PurePath(SHELF_DIR / "index_shelf")))
     input_string = str(input_string)
 
     try:
@@ -425,7 +442,7 @@ def load_multiple(*args, _all=False):
     """
 
     if _all:
-        name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
+        name_shelf = shelve.open(str(PurePath(SHELF_DIR / "name_shelf")))
         for key in name_shelf.keys():
             yield load(key)
     else:
@@ -494,4 +511,5 @@ def all_status(status_dir=STATUS_DIR):
     return
 
 if __name__ == "__main__":
+    # print(BASE_DIR)
     initialize()

@@ -25,15 +25,13 @@ Just unzip it and place it somewhere on your disk. Later (during initialization)
 ## Installation
 
 ```python
-
-  `pip install https://codeload.github.com/immensity/python-git/zip/master`
-
-  `pip install python-git --upgrade`
+  pip install https://codeload.github.com/immensity/python-git/zip/master
+  pip install python-git --upgrade
 ```
 
 ## Initial setup
 
-1. To setup, you need to look for where `pygit` is installed in your system. If you're using anaconda it would likely be in `C:\ProgramData\Anaconda3\Lib\site-packages\pygit`. then issue the command
+1. To setup, you need to look for the location of `pygit` on your system. If you're using anaconda it would likely be in `C:\ProgramData\Anaconda3\Lib\site-packages\pygit`. then issue the command
 
    `$ python <full_installation_path>\main.py`.
 
@@ -53,7 +51,15 @@ Just unzip it and place it somewhere on your disk. Later (during initialization)
 1. The location of your `git` repositories. You may do this by passing it a list of strings on the command line. Each string represents a full path name to single directory. You may also just provide a single directory which holds multiple git repositories and `pygit` will grab all the repositories for your. If you have a master directory that holds multiple `git` repositories, `pygit` can also take the full path name of this master directory and then index the git repositories it finds there. It won't index those directories that are not git repos. It is also possible to tell `pygit` not to index certain directories by specifying the starting string of the directory name. This is referred to as a `rule`. Directories matching such rules will not be touched.
 1. The location of a `git-cmd.exe` executable. This only applies if `git` is not accessible from your system `cmd`. That is, `git` is not in your system path. More on this below.
 
-In case things change (perhaps you moved folders around) and you want to reset your folders,
+## My personal setup
+
+```python
+
+   python "C:\ProgramData\Anaconda3\Lib\site-packages\pygit\main.py" -g "C:\Program Files\Git\git-cmd.exe" -m "D:\git"
+
+```
+
+In case things change (perhaps you moved folders around or you add a new git repo) and you want to reset your folders,
 just redo the initialization step
 
 To see all available repositories run
@@ -70,7 +76,7 @@ To load a particular repository use
 
 where `repo_id` is a string-valued id assigned to that particular repo. The first value in the `show_repos` command's output.
 
-The `load\(\)` command returns a `Commands` object for that repo, which provides a gateway for issuing git commands on the repository
+The `load(input_string)` command returns a `Commands` object for that repo, which provides a gateway for issuing git commands on the repository
 
 Operations that can be performed on `Commands` object are shown below.
 

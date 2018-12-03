@@ -1,5 +1,5 @@
 **/__pycache__/ 
-.vscode 
+.vscode/
 .ipynb_checkpoints 
 reporter/__pycache__/ 
 **.json 
@@ -7,4 +7,4 @@ reporter/__pycache__/
 *.pyc
 storage/ 
 status/
-
+pygit_logger.log
