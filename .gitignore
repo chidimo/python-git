@@ -1,10 +1,6 @@
-**/__pycache__/ 
+**/__pycache__/
+pygit\shelf-dir/
 .vscode/
-.ipynb_checkpoints 
-reporter/__pycache__/ 
-**.json 
-# Compiled python modules.
 *.pyc
-storage/ 
 status/
 pygit_logger.log

@@ -7,7 +7,7 @@ import shelve
 import argparse
 import logging
 
-from pathlib import Path, PurePath
+from pathlib import Path, PurePath, PureWindowsPath
 from datetime import datetime
 from subprocess import Popen, PIPE, STDOUT
 
@@ -183,12 +183,12 @@ def initialize():
 
             if is_git_repo(directory_absolute_path):
                 if sys.platform == 'win32':
-                    name = directory_absolute_path.split("\\")[-1]
+                    name = PureWindowsPath(directory_absolute_path).parts[-1]
                 if sys.platform == 'linux':
-                    name = directory_absolute_path.split("/")[-1]
+                    name = PurePath(directory_absolute_path).parts[-1]
 
                 if args.verbosity:
-                    print(directory_absolute_path, " is a git repository *** shelving\n")
+                    pygit_logger.debug(directory_absolute_path, " is a git repository *** shelving\n")
                 name_shelf[name] = directory_absolute_path
                 index_shelf[str(i)] = name
                 i += 1
@@ -210,7 +210,7 @@ def initialize():
                 name_shelf[name] = directory
                 index_shelf[str(i)] = name
             else:
-                print(directory, " is not a valid git repo.\nContinuing...\n")
+                pygit_logger.debug(directory, " is not a valid git repo.\nContinuing...\n")
                 continue
             i += 1
 
