@@ -5,66 +5,21 @@ import sys
 import shutil
 import shelve
 import argparse
+
+from pathlib import Path
 from datetime import datetime
 from subprocess import Popen, PIPE, STDOUT
 
 from send2trash import send2trash
 
-USERHOME = os.path.abspath(os.path.expanduser('~'))
-DESKTOP = os.path.abspath(USERHOME + '/Desktop/')
+USERHOME = Path.home()
+DESKTOP = USERHOME / 'Desktop'
+STATUS_DIR = DESKTOP / "status"
+BASE_DIR = Path().resolve()
+SHELF_DIR = Path.joinpath(BASE_DIR, "shelf-dir")
+TEST_DIR = Path.joinpath(BASE_DIR, "test-dir")
+TIME_STAMP = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
 
-STATUS_DIR = os.path.join(DESKTOP ,"status")
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SHELF_DIR = os.path.join(BASE_DIR, "shelves")
-TEST_DIR = os.path.join(BASE_DIR, "test_git/")
-TIMING = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
-
-def get_site_packages_directory():
-    """Returns site packages directory"""
-    # try iterating over sys.path
-    try:
-        return next(p for p in sys.path if 'site-packages' in p)
-    except StopIteration:
-        pass
-
-    # try manually constructing the path and check if it exists
-    py_version = '{}.{}'.format(sys.version_info[0], sys.version_info[1])
-
-    prefix_paths = [
-        sys.prefix + '/lib/python{}/dist-packages/',
-        sys.prefix + '/lib/python{}/site-packages/',
-        sys.prefix + '/local/lib/python{}/dist-packages/',
-        sys.prefix + '/local/lib/python{}/site-packages/',
-        '/Library/Python/{}/site-packages/',
-    ]
-
-    py_installation_paths = [each.format(py_version) for each in prefix_paths]
-    paths = py_installation_paths + [
-        # these paths for versionless installs like jupyter
-        sys.prefix + '/lib/dist-packages/',
-        sys.prefix + '/lib/site-packages/',
-        sys.prefix + '/local/lib/dist-packages/',
-        sys.prefix + '/local/lib/site-packages/',
-    ]
-    for path in paths:
-        if os.path.exists(path):
-            return path
-    return None
-
-def show_help():
-    """How to call the initialization program"""
-    site_package_directory = get_site_packages_directory()
-    source_directory_1 = '{}/pygit/main.py'.format(site_package_directory)
-    source_directory_2 = '{}/python_git-4.0-py3.6.egg/pygit/main.py'.format(site_package_directory)
-    print('\n\nTo initialize pygit, run\n')
-    if os.path.exists(source_directory_1):
-        print('\tpython ', source_directory_1)
-    elif os.path.exists(source_directory_2):
-        print('\tpython ', source_directory_2)
-    else:
-        print("Installation not found")
-    print("Include the -h flag for help")
-    return
 
 def clear_screen():
     if sys.platform == 'win32':
@@ -138,13 +93,13 @@ def initialize():
     Accepts command line inputs only.
     """
     try:
-        os.mkdir(SHELF_DIR)
+        Path.mkdir(SHELF_DIR)
     except FileExistsError:
         shutil.rmtree(SHELF_DIR)
-        os.mkdir(SHELF_DIR)
+        Path.mkdir(SHELF_DIR)
 
-    name_shelf = shelve.open(os.path.join(SHELF_DIR, "name_shelf"))
-    index_shelf = shelve.open(os.path.join(SHELF_DIR, "index_shelf"))
+    name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
+    index_shelf = shelve.open(Path.joinpath(SHELF_DIR, "index_shelf"))
 
     parser = argparse.ArgumentParser(prog="Pygit. Initialize pygit's working directories.")
     parser.add_argument("-v", "--verbosity", type=int, help="turn verbosity ON/OFF", choices=[0,1])
@@ -190,7 +145,7 @@ def initialize():
 
         folder_paths = [
             name for name in os.listdir(args.masterDirectory) \
-            if os.path.isdir(os.path.join(args.masterDirectory, name))
+            if os.path.isdir(Path.joinpath(args.masterDirectory, name))
         ]
 
         for name in folder_paths:
@@ -199,7 +154,7 @@ def initialize():
                 if args.verbosity:
                     print(name, " starts with one of ", bad_folder_starts, " skipping\n")
                 continue
-            path = os.path.join(args.masterDirectory, name)
+            path = Path.joinpath(args.masterDirectory, name)
             if args.rules:
                 # if any of the string patterns is found in path name, that folder will be skipped.
                 if any([rule in path for rule in args.rules]):
@@ -256,8 +211,8 @@ def initialize():
 
     if args.verbosity:
         print("\nDone.\nThe following directories were set.\n")
-        name_shelf = shelve.open(os.path.join(SHELF_DIR, "name_shelf"))
-        index_shelf = shelve.open(os.path.join(SHELF_DIR, "index_shelf"))
+        name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
+        index_shelf = shelve.open(Path.joinpath(SHELF_DIR, "index_shelf"))
 
         print("{:<4} {:<20} {:<}".format("Key", "| Name", "| Path"))
         print("*********************************")
@@ -422,8 +377,8 @@ def show_repos():
     """Show all available repositories, path, and unique ID"""
     clear_screen()
     print("\nThe following repos are available.\n")
-    name_shelf = shelve.open(os.path.join(SHELF_DIR, "name_shelf"))
-    index_shelf = shelve.open(os.path.join(SHELF_DIR, "index_shelf"))
+    name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
+    index_shelf = shelve.open(Path.joinpath(SHELF_DIR, "index_shelf"))
 
     print("{:<4} {:<20} {:<}".format("Key", "| Name", "| Path"))
     print("******************************************")
@@ -435,8 +390,8 @@ def show_repos():
 
 def load(input_string): # id is string
     """Load a repository with specified id"""
-    name_shelf = shelve.open(os.path.join(SHELF_DIR, "name_shelf"))
-    index_shelf = shelve.open(os.path.join(SHELF_DIR, "index_shelf"))
+    name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
+    index_shelf = shelve.open(Path.joinpath(SHELF_DIR, "index_shelf"))
     input_string = str(input_string)
 
     try:
@@ -470,7 +425,7 @@ def load_multiple(*args, _all=False):
     """
 
     if _all:
-        name_shelf = shelve.open(os.path.join(SHELF_DIR, "name_shelf"))
+        name_shelf = shelve.open(Path.joinpath(SHELF_DIR, "name_shelf"))
         for key in name_shelf.keys():
             yield load(key)
     else:
@@ -500,19 +455,19 @@ def all_status(status_dir=STATUS_DIR):
     attention = []
 
     try:
-        os.mkdir(DESKTOP)
+        Path.mkdir(DESKTOP)
     except FileExistsError:
         pass
     try:
-        os.mkdir(status_dir)
+        Path.mkdir(status_dir)
     except FileExistsError:
         pass
     os.chdir(status_dir)
 
-    fname = "REPO_STATUS_@_{}.md".format(TIMING)
+    fname = "REPO_STATUS_@_{}.md".format(TIME_STAMP)
 
     with open(fname, 'w+') as fhand:
-        fhand.write("# Repository status as at {}".format(TIMING))
+        fhand.write("# Repository status as at {}".format(TIME_STAMP))
         fhand.write("\n\n")
         for each in load_multiple(_all=True):
             name = each.name

@@ -4,6 +4,8 @@ import json
 import os
 import random
 import unittest
+
+from pathlib import Path
 from glob import glob
 from random import choice
 from send2trash import send2trash
@@ -19,12 +21,12 @@ class TestAppSetupA(unittest.TestCase):
     """Basic setup to test API"""
     def setUp(self):
         """Setup"""
-        print("Start ", os.path.basename(__file__), " tests")
+        print("Start ", Path().resolve(), " tests")
         initialize()
 
     def test_ids_exist(self): # always regen for this test to work
         """Test id file created and that its content is a dictionary"""
-        assert os.path.exists(IDS)
+        assert Path(IDS).exists()
         with open(IDS) as rhand:
             self.assertIsInstance(json.load(rhand), dict)
 

@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+coverage = "==4.5.1"
+"send2trash" = "==1.5.0"
+
+[dev-packages]
+twine = "*"
+
+[requires]
+python_version = "3.6"
