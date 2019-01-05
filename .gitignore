@@ -4,3 +4,7 @@
 status/
 pygit_logger.log
 pygit/shelf-dir/
+pygit/DATA_SHELVES/
+dist/
+build/
+python_git.egg-info/

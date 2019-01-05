@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 coverage = "==4.5.1"
 "send2trash" = "==1.5.0"
+pytest = "*"
 
 [dev-packages]
 twine = "*"
