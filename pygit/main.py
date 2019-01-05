@@ -21,7 +21,6 @@ SHELF_DIR = Path.joinpath(BASE_DIR, "shelf-dir")
 TEST_DIR = Path.joinpath(BASE_DIR, "test-dir")
 TIME_STAMP = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
 
-"""****************************"""
 
 def logging_def(log_file_name):
     FORMATTER = logging.Formatter("%(asctime)s:%(funcName)s:%(levelname)s\n%(message)s")
