@@ -17,10 +17,11 @@ USERHOME = Path.home()
 DESKTOP = USERHOME / 'Desktop'
 STATUS_DIR = DESKTOP / "status"
 BASE_DIR = Path().resolve() / 'pygit'
-SHELF_DIR = Path.joinpath(BASE_DIR, "shelf-dir")
-TEST_DIR = Path.joinpath(BASE_DIR, "test-dir")
+SHELF_DIR = Path.joinpath(BASE_DIR, "DATA_SHELVES")
+TEST_DIR = Path.joinpath(BASE_DIR, "TEST_FOLDER")
 TIME_STAMP = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
 
+logging.disable(logging.CRITICAL)
 
 def logging_def(log_file_name):
     FORMATTER = logging.Formatter("%(asctime)s:%(funcName)s:%(levelname)s\n%(message)s")
@@ -95,7 +96,7 @@ def check_git_support():
     return False
 
 
-def create_shelves():
+def open_shelves():
     """Create shelves for used by python-git"""
     try:
         Path.mkdir(SHELF_DIR)
@@ -111,21 +112,7 @@ def create_shelves():
 
 
 def get_command_line_arguments():
-    """Get arguments from command line
-
-    Parameters
-    -----------
-    gitPath : str
-        Optional, Path to a git executable, if git is not in your system path.
-    masterDirectory : str
-        Optional, Full pathname to directory with multiple git repos
-    simpleDirectory : list
-        A list of full pathname to individual git repos.
-
-    Notes
-    ------
-    Accepts command line inputs only.
-    """
+    """Get arguments from command line"""
 
     parser = argparse.ArgumentParser(prog="Pygit. Initialize python git's working directories.")
     parser.add_argument("-v", "--verbosity", type=int, help="turn verbosity ON/OFF", choices=[0,1])
@@ -134,11 +121,10 @@ def get_command_line_arguments():
     parser.add_argument('-m', '--masterDirectory', help="Full pathname to directory holding any number of git repos.")
     parser.add_argument('-s', '--simpleDirectory', help="A list of full pathnames to any number of individual git repos.", nargs='+')
     parser.add_argument('-t', '--statusDirectory', help="Full pathname to directory for writing out status message.") # make mandatory
-
     return parser.parse_args()
 
 
-def handle_git_path(git_path, verbosity):
+def shelve_git_path(git_path, verbosity):
     """Find and store the location of git executable"""
 
     if check_git_support():
@@ -166,46 +152,60 @@ def handle_git_path(git_path, verbosity):
                 return
 
 
-def handle_master_directory(master_directory, verbosity, rules):
+def enforce_exclusion(folder_name, verbosity):
+    """Return True if a folder starts with any character in exclusion_folder_start"""
+    exclusion_folder_start = [".", "_"] # skip folders that start with any of these characters
+    if any([str(PurePath(folder_name)).startswith(each) for each in exclusion_folder_start]):
+        if verbosity:
+            make_verbose(verbosity, folder_name, " starts with one of ", exclusion_folder_start, " skipping\n")
+        return True
+    return False
+
+
+def make_verbose(verbosity, *args):
+    """Logs output"""
+    if verbosity:
+        for arg in args:
+            log_init_process.debug(arg)
+
+
+def match_rule(rules, path, verbosity):
+    """Return True if a folder matches a rule in rules"""
+    if rules:
+        if any([rule in path for rule in rules]):
+            make_verbose(verbosity, path, " matches an exclusion rule. Skipping\n")
+            return True
+    return False
+
+
+def shelve_master_directory(master_directory, verbosity, rules):
     """Find and store the locations of git repos"""
     if master_directory:
-        if verbosity:
-            print("Master directory set to ", master_directory, "\n\n")
-            print("Please wait a few minutes while we look inside", master_directory, "\n")
+
+        make_verbose(verbosity, "Master directory set to ", master_directory, "Now Shelving")
 
         i = len(list(INDEX_SHELF.keys())) + 1
-
         folder_paths = [x for x in Path(master_directory).iterdir() if x.is_dir()]
-        log_init_process.debug(folder_paths)
 
-        for e in folder_paths: # log folders
-            log_init_process.debug(e)
+        for f in folder_paths: # log folders
+            make_verbose(verbosity, f)
 
         for folder_name in folder_paths:
-            bad_folder_starts = [".", "_"] # skip folders that start with any of these characters
-            if any([str(PurePath(folder_name)).startswith(each) for each in bad_folder_starts]) :
-                if verbosity:
-                    log_init_process.debug(folder_name, " starts with one of ", bad_folder_starts, " skipping\n")
+            path = Path(master_directory) / folder_name
+            if enforce_exclusion(folder_name, verbosity):
+                continue
+            if match_rule(rules, path, verbosity):
                 continue
 
-            path = Path(master_directory) / folder_name
-            if rules:
-                # if any of the string patterns is found in path folder_name, that folder will be skipped.
-                if any([rule in path for rule in rules]):
-                    if verbosity:
-                        log_init_process.debug(path, " matches a rule. Skipping\n")
-                    continue
-
             directory_absolute_path = Path(path).resolve()
-
             if is_git_repo(directory_absolute_path):
                 if sys.platform == 'win32':
                     name = PureWindowsPath(directory_absolute_path).parts[-1]
                 if sys.platform == 'linux':
                     name = PurePath(directory_absolute_path).parts[-1]
 
-                if verbosity:
-                    log_init_process.debug(directory_absolute_path, " is a git repository *** shelving\n")
+                make_verbose(verbosity, directory_absolute_path, " is a git repository *** shelving\n")
+
                 NAME_SHELF[name] = directory_absolute_path
                 INDEX_SHELF[str(i)] = name
                 i += 1
@@ -213,15 +213,14 @@ def handle_master_directory(master_directory, verbosity, rules):
         INDEX_SHELF.close()
 
 
-def handle_simple_directory(simple_directory, verbosity):
+def shelve_simple_directory(simple_directory, verbosity):
     if simple_directory:
 
         i = len(list(INDEX_SHELF.keys())) + 1
         for directory in simple_directory:
 
             if is_git_repo(directory):
-                if verbosity:
-                    print(directory, " is a git repository *** shelving\n")
+                make_verbose(verbosity, " is a git repository *** shelving\n")
                 if sys.platform == 'win32':
                     name = directory.split("\\")[-1]
                 if sys.platform == 'linux':
@@ -229,23 +228,21 @@ def handle_simple_directory(simple_directory, verbosity):
                 NAME_SHELF[name] = directory
                 INDEX_SHELF[str(i)] = name
             else:
-                log_init_process.debug(directory, " is not a valid git repo.\nContinuing...\n")
+                make_verbose(verbosity, " is not a valid git repo.\nContinuing...\n")
                 continue
             i += 1
-
         NAME_SHELF.close()
         INDEX_SHELF.close()
 
-def handle_status_directory(status_directory, verbosity):
+
+def shelve_status_directory(status_directory, verbosity):
 
     global STATUS_DIR
     if status_directory:
         STATUS_DIR = status_directory
-        if verbosity:
-            print("\nStatus will be saved in {}\n".format(STATUS_DIR))
+        make_verbose(verbosity, "\nStatus will be saved in {}\n".format(STATUS_DIR))
     else:
-        if verbosity:
-            print("\nStatus will be saved in {}\n".format(STATUS_DIR))
+        make_verbose(verbosity, "\nStatus will be saved in {}\n".format(STATUS_DIR))
 
     if verbosity:
         print("\nDone.\nThe following directories were set.\n")
@@ -256,7 +253,7 @@ def handle_status_directory(status_directory, verbosity):
         print("*********************************")
         for key in INDEX_SHELF.keys():
             name = INDEX_SHELF[key]
-            print("{:<4} {:<20} {:<}".format(key, name, NAME_SHELF[name]))
+            print("{:<4} {:<20} {:<}".format(key, name, str(NAME_SHELF[name])))
         INDEX_SHELF.close()
         NAME_SHELF.close()
     else:
@@ -272,10 +269,10 @@ def initialize():
     verbosity = args.verbosity
     rules = args.rules
 
-    handle_git_path(args.gitPath, verbosity)
-    handle_master_directory(args.masterDirectory, verbosity, rules)
-    handle_simple_directory(args.simpleDirectory, verbosity)
-    handle_status_directory(args.statusDirectory, verbosity)
+    shelve_git_path(args.gitPath, verbosity)
+    shelve_master_directory(args.masterDirectory, verbosity, rules)
+    shelve_simple_directory(args.simpleDirectory, verbosity)
+    shelve_status_directory(args.statusDirectory, verbosity)
     return
 
 
@@ -390,7 +387,7 @@ class Commands:
         self.stage_all()
         self.commit()
 
-    def push_repo(self):
+    def push(self):
         """git push"""
         if self.git_exec:
             process = Popen([self.git_exec, ' git push'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
@@ -399,7 +396,7 @@ class Commands:
         output, _ = process.communicate()
         return str("Push completed.{}".format(str(output.decode("utf-8"))))
 
-    def pull_repo(self):
+    def pull(self):
         """git pull"""
         if self.git_exec:
             process = Popen([self.git_exec, ' git pull'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
@@ -441,7 +438,7 @@ def show_repos():
     print("******************************************")
     for key in INDEX_SHELF.keys():
         name = INDEX_SHELF[key]
-        print("{:<4} {:<20} {:<}".format(key, name, NAME_SHELF[name]))
+        print("{:<4} {:<20} {:<}".format(key, name, str(NAME_SHELF[name])))
     INDEX_SHELF.close()
     NAME_SHELF.close()
 
@@ -456,7 +453,7 @@ def load(input_string): # id is string
         int(input_string) # if not coercible into an integer, then its probably a repo name rather than ID
         try:
             name = INDEX_SHELF[input_string]
-            return Commands(name, NAME_SHELF[name])
+            return Commands(name, str(NAME_SHELF[name]))
         except KeyError:
             raise Exception("That index does not exist.")
     except ValueError:
@@ -489,18 +486,18 @@ def load_multiple(*args, _all=False):
         for arg in args:
             yield load(arg)
 
-def pull_repo(*args, _all=False):
+def pull(*args, _all=False):
 
     print("Pull repos\n\n")
     for each in load_multiple(*args, _all=_all):
-        s = "*** {} ***\n{}".format(each.name, each.pull_repo())
+        s = "*** {} ***\n{}".format(each.name, each.pull())
         print(s)
 
-def push_repo(*args, _all=False):
+def push(*args, _all=False):
 
     print("Push  repos\n\n")
     for each in load_multiple(*args, _all=_all):
-        s = "*** {} ***\n{}".format(each.name, each.push_repo())
+        s = "*** {} ***\n{}".format(each.name, each.push())
         print(s)
 
 def all_status(status_dir=STATUS_DIR):
@@ -550,6 +547,8 @@ def all_status(status_dir=STATUS_DIR):
     return
 
 if __name__ == "__main__":
-    create_shelves()
-    print("Name: ", NAME_SHELF, "INdex: ", INDEX_SHELF)
-    get_command_line_arguments()
+    open_shelves()
+    # print("Name: ", NAME_SHELF, "INdex: ", INDEX_SHELF)
+    # shelve_master_directory(r"D:\git", 1, "")
+    # show_repos()
+    initialize()
