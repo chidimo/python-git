@@ -1,6 +1,6 @@
 **/__pycache__/
-pygit\shelf-dir/
 .vscode/
 *.pyc
 status/
 pygit_logger.log
+pygit/shelf-dir/
