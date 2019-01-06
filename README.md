@@ -1,4 +1,4 @@
-# python-git
+# Python-Git
 
 Automate the boring git stuff with python
 
@@ -14,65 +14,68 @@ In short, what needs attention so as to avoid those troubling merge conflicts.
 
 ## Requirements
 
-The only requirements in terms of software is `send2trash` which helps take care of cleaning up stuff.
 Other thing you need is a computer with `git` either accessible from the command line (which means its in your system path) or as a standalone file somewhere in your system.
-If you're working on PC without installation rights, you can use a portable `git` and `python-git` will work just fine.
+If you're working without installation rights, you can use a portable `git` and `python-git` will work just fine.
 
 You can get a portable git version from [here](https://git-scm.com/download/win)
 
 Just unzip it and place it somewhere on your disk. Later (during initialization), you'll need to tell `python-git` where this file is located.
 
 ## Installation
+  
+      pip install python-git
 
-```python
-  pip install https://codeload.github.com/immensity/python-git/zip/master
-  pip install python-git --upgrade
+## Setup
+
+After installation, an initial setup is required to tell `pygit` the folders it needs to work with. Open a terminal and `python -m pygit` the below line with appropriate command line arguments.
+
+The output of `python -m pygit --help` is shown below.
+
+```cmd
+usage: Pygit. Initialize working directories for python-git
+       [-h] [-v {0,1}] [-r RULES [RULES ...]] [-g GITPATH]
+       [-m MASTERDIRECTORY] [-s SIMPLEDIRECTORY [SIMPLEDIRECTORY ...]]
+       [-t STATUSDIRECTORY]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v {0,1}, --verbosity {0,1}
+                        turn verbosity ON/OFF
+  -r RULES [RULES ...], --rules RULES [RULES ...]
+                        Set a list of string patterns for folders to skip
+                        during setup
+  -g GITPATH, --gitPath GITPATH
+                        Full pathname to git executable. cmd or bash.
+  -m MASTERDIRECTORY, --masterDirectory MASTERDIRECTORY
+                        Full pathname to directory holding any number of git
+                        repos.
+  -s SIMPLEDIRECTORY [SIMPLEDIRECTORY ...], --simpleDirectory SIMPLEDIRECTORY [SIMPLEDIRECTORY ...]
+                        A list of full pathnames to any number of individual
+                        git repos.
+  -t STATUSDIRECTORY, --statusDirectory STATUSDIRECTORY
+                        Full pathname to directory for writing out status
+                        message.
 ```
 
-## Initial setup
+As an example you I have a folder in my `D:` drive that holds all my git repos, so I will setup `pygit` with the following command
 
-1. To setup, you need to look for the location of `pygit` on your system. If you're using anaconda it would likely be in `C:\ProgramData\Anaconda3\Lib\site-packages\pygit`. then issue the command
-
-   `$ python <full_installation_path>\main.py`.
-
- For finding files in your system I recommend [everything](https://www.voidtools.com/)
+      python -m pygit --m D:\git -v 1 -t D:\
 
 ## Usage
 
-1. Activate python environment on command line.
+Activate python environment on command line.
 
-   `import pygit # should return nothing if all goes well`
+      import pygit
 
-1. Now you need to specify exactly two things:
+In case things change (perhaps you moved folders around or you add a new git repo) and you want to reset your folders just redo the initialization step
 
-      1. where your git repos are
-      1. where your `git-cmd.exe` is located.
+      pygit.show_repos()
 
-1. The location of your `git` repositories. You may do this by passing it a list of strings on the command line. Each string represents a full path name to single directory. You may also just provide a single directory which holds multiple git repositories and `pygit` will grab all the repositories for your. If you have a master directory that holds multiple `git` repositories, `pygit` can also take the full path name of this master directory and then index the git repositories it finds there. It won't index those directories that are not git repos. It is also possible to tell `pygit` not to index certain directories by specifying the starting string of the directory name. This is referred to as a `rule`. Directories matching such rules will not be touched.
-1. The location of a `git-cmd.exe` executable. This only applies if `git` is not accessible from your system `cmd`. That is, `git` is not in your system path. More on this below.
+show all git repos in the format shown immediately below
 
-## My personal setup
+      repository_id: repository_name: repository_full_path
 
-```python
-
-   python "C:\ProgramData\Anaconda3\Lib\site-packages\pygit\main.py" -g "C:\Program Files\Git\git-cmd.exe" -m "D:\git"
-
-```
-
-In case things change (perhaps you moved folders around or you add a new git repo) and you want to reset your folders,
-just redo the initialization step
-
-To see all available repositories run
-
-   `pygit.show_repos()`
-
-This command shows a list of all available repositories in the format
-
-   `repository_id: repository_name: repository_directory_path`
-
-To load a particular repository use
-
-   `pygit.load(repo_id_or_name)`
+      pygit.load(repo_id_or_name) # load a repo
 
 where `repo_id` is a string-valued id assigned to that particular repo. The first value in the `show_repos` command's output.
 
@@ -81,52 +84,46 @@ The `load(input_string)` command returns a `Commands` object for that repo, whic
 Operations that can be performed on `Commands` object are shown below.
 
 ```python
-
-   Commands().fetch() # perform fetch
-   Commands().status() # see status
-   Commands().add_all() # stage all changes for commit
-   Commands().commit(message='minor changes') # commit changes. Press enter to accept default message
-   Commands().push() # perform push action
-   Commands().pull() # perform pull request
-   Commands().add_commit() # add and commit at once
+   r = pygit.load_repo(repo_id_or_name)
+   r.fetch() # perform fetch
+   r.status() # see status
+   r.add_all() # stage all changes for commit
+   r.commit(message='chore: minor changes') # commit changes. Press enter to accept default message
+   r.push() # perform push action
+   r.pull() # perform pull request
+   r.add_commit() # add and commit at once
 ```
 
 ### Batch Operations
 
-Pygit provides some functions for performing batch operations on your repositories.
+The following batch operations on indexed repos are available.
 
-   `pygit.load_multiple(*args)`
-
-loads a set of repositories. You could decide to only load only 2 of 10 repositories. Perhaps you need to perform similar actions
-on those two alone. As an example
-
-   `pygit.load_set("2", "5")`
+      pygit.load_multiple(*args) # load a set of repos
+      pygit.load_multiple("2", "5") # load only repo 2 and 5
 
 returns a  `generator`  of  `Commands`  objects for repositories 2 and 5. Afterwards you can iterate over the repos like below
 
 ```python
-   for each in pygit.load_set("2", "5"):
+   for each in pygit.load_multiple("2", "5"):
       each.add_commit()
 ```
 
-   `pygit.all_status()`
+      pygit.all_status()
 
-performs a `status` command on all your repositories. The result is written to a text file. The text file opens automatically.
-The name of the file shows the date and time of the status request. All batch status request is written to its a separate file.
-Call it a snapshot of your repo status if you will
-Those items which are out of sync with their remote counterpart (by being ahead or being behind) are also highlighted as needing attention.
+performs a `status` command on all indexed repos. The result is written to a markdown file.
+Carries a timestamp of the time the command was issued. Call it a snapshot of your repo status if you will. Items which are out of sync with their remote counterpart are also highlighted as needing attention.
 
-   `pygit.pull_all()`
+      pygit.pull_all()
 
-performs a `pull` request on all your repositories at once. Its  `return`  value is  None.
+perform a `pull` request on all indexed repos at once. It returns `None`.
 
-   `pygit.push_all()`
+      pygit.push_all()
 
-performs a `push` action on all your repositories at once. Its  `return` value is  None.
+performs a `push` action on all indexed repos at once. It returns `None`.
 
-   `pygit.load_all()`
+      pygit.load_all()
 
-returns a  `generator`  of  `Commands`  object for every repository.
+returns a  `generator`  of  `Commands`  object for each indexed repo.
 
 ## To do
 
@@ -136,10 +133,3 @@ returns a  `generator`  of  `Commands`  object for every repository.
 1. Refactor tests
 1. Auto-run test after importation to make sure every other thing works fine.
 1. Define an update function that updates the repo dictionaries for the case when a new repo is added but the overall directory structure remains unchanged.
-
-## Update git check locations
-
-1. C:\Program Files\Git\cmd\git.exe
-1. C:\Program Files (x86)\Git\cmd\git.exe
-1. C:\Program Files\Git\cmd\git.exe
-1. C:\Users\Chidimma\AppData\Local\Programs\Git\cmd\git.exe
