@@ -8,7 +8,6 @@ from pathlib import Path
 from subprocess import call
 from setuptools import setup
 
-
 def readme():
     """Readme"""
     with open("README.md") as rhand:
@@ -16,7 +15,7 @@ def readme():
 
 
 setup(name='python-git',
-      version='4.3',
+      version='2018.01.31',
       description='Automate boring git tasks',
       long_description=readme(),
       classifiers=[
@@ -40,5 +39,4 @@ setup(name='python-git',
       install_requires=[
           'send2trash'
       ],
-      zip_safe=False,
-      test_suite='nose2.collector.collector',)
+      zip_safe=False,)
