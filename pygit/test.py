@@ -5,8 +5,8 @@ import os
 import random
 import unittest
 
-import pytest
-from . import app
+# import pytest
+from . import pygit
 
 from pathlib import Path
 from glob import glob
