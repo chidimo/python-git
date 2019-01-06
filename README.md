@@ -127,7 +127,6 @@ returns a  `generator`  of  `Commands`  object for each indexed repo.
 
 ## To do
 
-1. Refactor `initialize()` function
 1. Add `git-bash.exe`
 1. Implement `Commands.branch()`
 1. Refactor tests
