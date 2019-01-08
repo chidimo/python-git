@@ -152,9 +152,18 @@ def match_rule(rules, path, verbosity):
     return False
 
 
+def save_master(master_directory):
+    """Saves the location of the master directory"""
+    MASTER_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MASTER_SHELF")))
+    MASTER_SHELF["master"] = master_directory
+    MASTER_SHELF.close()
+
+
 def shelve_master_directory(master_directory, verbosity, rules):
     """Find and store the locations of git repos"""
     if master_directory:
+
+        save_master(master_directory)
 
         show_verbose_output(verbosity, "Master directory set to ", master_directory, "Now Shelving")
 
