@@ -13,9 +13,9 @@ from pathlib import Path, PurePath, PureWindowsPath
 
 from send2trash import send2trash
 
-USERHOME = Path.home()
-DESKTOP = USERHOME / 'Desktop'
-BASE_DIR = Path().resolve() / 'pygit'
+BASE_DIR = Path.home()
+DESKTOP = BASE_DIR / 'Desktop'
+# BASE_DIR = Path().resolve() / 'pygit'
 SHELF_DIR = Path.joinpath(Path().resolve(), "PYGIT_SHELF")
 TEST_DIR = Path.joinpath(BASE_DIR, "TEST_FOLDER")
 
