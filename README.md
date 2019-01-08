@@ -35,7 +35,6 @@ The output of `python -m pygit --help` is shown below.
 usage: Pygit. Initialize working directories for python-git
        [-h] [-v {0,1}] [-r RULES [RULES ...]] [-g GITPATH]
        [-m MASTERDIRECTORY] [-s SIMPLEDIRECTORY [SIMPLEDIRECTORY ...]]
-       [-t STATUSDIRECTORY]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -52,14 +51,15 @@ optional arguments:
   -s SIMPLEDIRECTORY [SIMPLEDIRECTORY ...], --simpleDirectory SIMPLEDIRECTORY [SIMPLEDIRECTORY ...]
                         A list of full pathnames to any number of individual
                         git repos.
-  -t STATUSDIRECTORY, --statusDirectory STATUSDIRECTORY
-                        Full pathname to directory for writing out status
-                        message.
 ```
 
 As an example you I have a folder in my `D:` drive that holds all my git repos, so I will setup `pygit` with the following command
 
-      python -m pygit --m D:\git -v 1 -t D:\
+      python -m pygit --m D:\git -v 1
+
+If it happens that you clone more repos into your master directory, you may update the index by issuing the `update()`command inside a `python` shell.
+
+      pygit.update()
 
 ## Usage
 
@@ -69,15 +69,13 @@ Activate python environment on command line.
 
 In case things change (perhaps you moved folders around or you add a new git repo) and you want to reset your folders just redo the initialization step
 
-      pygit.show_repos()
+      pygit.repos()
 
 show all git repos in the format shown immediately below
 
-      repository_id: repository_name: repository_full_path
-
       pygit.load(repo_id_or_name) # load a repo
 
-where `repo_id` is a string-valued id assigned to that particular repo. The first value in the `show_repos` command's output.
+where `repo_id` is a string-valued id assigned to that particular repo. The first value in the `repos` command's output.
 
 The `load(input_string)` command returns a `Commands` object for that repo, which provides a gateway for issuing git commands on the repository
 
@@ -131,4 +129,3 @@ returns a  `generator`  of  `Commands`  object for each indexed repo.
 1. Implement `Commands.branch()`
 1. Refactor tests
 1. Auto-run test after importation to make sure every other thing works fine.
-1. Define an update function that updates the repo dictionaries for the case when a new repo is added but the overall directory structure remains unchanged.
