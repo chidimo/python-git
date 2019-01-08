@@ -15,10 +15,13 @@ from send2trash import send2trash
 
 BASE_DIR = Path.home()
 DESKTOP = BASE_DIR / 'Desktop'
-# BASE_DIR = Path().resolve() / 'pygit'
-SHELF_DIR = BASE_DIR / 'PYGIT_SHELF' #Path.joinpath(Path().resolve(), "PYGIT_SHELF")
-TEST_DIR = Path.joinpath(BASE_DIR, "TEST_FOLDER")
+SHELF_DIR = BASE_DIR / 'python-git-shelf'
+STATUS_DIR = BASE_DIR / 'python-git-status'
+TEST_DIR = BASE_DIR / "TEST_FOLDER"
 
+# NAME_SHELF = shelve.open(str(PurePath(SHELF_DIR / "NAME_SHELF"))) # Use the string representation to open path to avoid errors
+# INDEX_SHELF = shelve.open(str(PurePath(SHELF_DIR / "INDEX_SHELF")))
+# MASTER_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MASTER_SHELF")))
 
 def logging_def(log_file_name):
     FORMATTER = logging.Formatter("%(asctime)s:%(funcName)s:%(levelname)s\n%(message)s")
@@ -101,7 +104,6 @@ def get_command_line_arguments():
     parser.add_argument('-g', '--gitPath', help="Full pathname to git executable. cmd or bash.")
     parser.add_argument('-m', '--masterDirectory', help="Full pathname to directory holding any number of git repos.")
     parser.add_argument('-s', '--simpleDirectory', help="A list of full pathnames to any number of individual git repos.", nargs='+')
-    parser.add_argument('-t', '--statusDirectory', help="Full pathname to directory for writing out status message.") # make mandatory
     return parser.parse_args()
 
 
@@ -154,6 +156,7 @@ def match_rule(rules, path, verbosity):
 
 def save_master(master_directory):
     """Saves the location of the master directory"""
+    global MASTER_SHELF
     MASTER_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MASTER_SHELF")))
     MASTER_SHELF["master"] = master_directory
     MASTER_SHELF.close()
@@ -161,6 +164,7 @@ def save_master(master_directory):
 
 def shelve_master_directory(master_directory, verbosity, rules):
     """Find and store the locations of git repos"""
+
     if master_directory:
         save_master(master_directory)
         show_verbose_output(verbosity, "Master directory set to ", master_directory, "Now Shelving")
@@ -214,36 +218,22 @@ def shelve_simple_directory(simple_directory, verbosity):
             i += 1
 
 
-def create_status_directory(status_directory):
-    STATUS_SHELF = shelve.open(str(PurePath(SHELF_DIR / "STATUS_SHELF")))
-
-    if status_directory:
-        STATUS_DIR =  Path(status_directory)
-    else:
-        STATUS_DIR = DESKTOP / "status"
-        try:
-            Path.mkdir(DESKTOP)
-        except FileExistsError:
-            pass
-
-    STATUS_SHELF['status_dir'] = STATUS_DIR
-    try:
-        Path.mkdir(STATUS_DIR)
-    except FileExistsError:
-        pass
-    except PermissionError:
-        raise("You cannot use a root directory for saving")
-
-
 def initialize():
     """Initialize the data necessary for pygit to operate"""
-    global NAME_SHELF, INDEX_SHELF
+    print("Initializing ...")
 
+    global NAME_SHELF, INDEX_SHELF
     try:
         Path.mkdir(SHELF_DIR)
     except FileExistsError:
         shutil.rmtree(SHELF_DIR)
         Path.mkdir(SHELF_DIR)
+
+    try:
+        Path.mkdir(STATUS_DIR)
+    except FileExistsError:
+        pass
+
     NAME_SHELF = shelve.open(str(PurePath(SHELF_DIR / "NAME_SHELF"))) # Use the string representation to open path to avoid errors
     INDEX_SHELF = shelve.open(str(PurePath(SHELF_DIR / "INDEX_SHELF")))
 
@@ -253,25 +243,55 @@ def initialize():
     shelve_git_path(args.gitPath, verbosity)
     shelve_master_directory(args.masterDirectory, verbosity, rules)
     shelve_simple_directory(args.simpleDirectory, verbosity)
-    create_status_directory(args.statusDirectory)
+
+    INDEX_SHELF.close()
+    NAME_SHELF.close()
 
     if verbosity:
         print("\nIndexed git repos.\n")
         NAME_SHELF = shelve.open(str(PurePath(SHELF_DIR / "NAME_SHELF")))
         INDEX_SHELF = shelve.open(str(PurePath(SHELF_DIR / "INDEX_SHELF")))
-        STATUS_SHELF = shelve.open(str(PurePath(SHELF_DIR / "STATUS_SHELF")))
 
-        print("Status saved in ", STATUS_SHELF["status_dir"])
+        print("Status saved in {}".format(STATUS_DIR))
         print("{:<4} {:<20} {:<}".format("Key", "| Name", "| Path"))
         print("*********************************")
         for key in INDEX_SHELF.keys():
             name = INDEX_SHELF[key]
             print("{:<4} {:<20} {:<}".format(key, name, str(NAME_SHELF[name])))
-        INDEX_SHELF.close()
-        NAME_SHELF.close()
-        STATUS_SHELF.close()
     else:
         print("Indexing done")
+    return
+
+
+def update():
+    """Update INDEX_SHELF"""
+    MASTER_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MASTER_SHELF")))
+    INDEX_SHELF = shelve.open(str(PurePath(SHELF_DIR / "INDEX_SHELF")))
+    NAME_SHELF = shelve.open(str(PurePath(SHELF_DIR / "NAME_SHELF")))
+
+    master = MASTER_SHELF["master"]
+    print("Master ", master)
+    # shelve_master_directory(master, 0, "")
+    save_master(master)
+
+    i = len(list(INDEX_SHELF.keys())) + 1
+    folder_paths = [x for x in Path(master).iterdir() if x.is_dir()]
+
+    for folder_name in folder_paths:
+        path = Path(master) / folder_name
+
+        directory_absolute_path = Path(path).resolve()
+        if is_git_repo(directory_absolute_path):
+            if sys.platform == 'win32':
+                name = PureWindowsPath(directory_absolute_path).parts[-1]
+            if sys.platform == 'linux':
+                name = PurePath(directory_absolute_path).parts[-1]
+
+            NAME_SHELF[name] = directory_absolute_path
+            INDEX_SHELF[str(i)] = name
+            i += 1
+
+    print("Update completed successfully")
     return
 
 
@@ -424,7 +444,7 @@ class Commands:
     #     branch_name = re.search(r"\[origin\/(.*)\]", line)
     #     return branch_name.group(1)
 
-def show_repos():
+def repos():
     """Show all available repositories, path, and unique ID"""
     print("\nThe following repos are available.\n")
     NAME_SHELF = shelve.open(str(PurePath(SHELF_DIR / "NAME_SHELF")))
@@ -498,10 +518,8 @@ def push(*args, _all=False):
 def all_status():
     """Write status of all repositories to file in markdown format"""
     print("Getting repo status.\n\nYou may be prompted for credentials...")
-    STATUS_SHELF = shelve.open(str(PurePath(SHELF_DIR / "STATUS_SHELF")))
-    STATUS_DIR = STATUS_SHELF["status_dir"]
-    os.chdir(STATUS_DIR)
 
+    os.chdir(STATUS_DIR)
     attention = ""
     messages = []
     TIME_STAMP = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
@@ -530,4 +548,4 @@ def all_status():
     return
 
 if __name__ == "__main__":
-    pass
+    initialize()
