@@ -37,7 +37,7 @@ pygit_logger = logging_def('pygit_logger.log')
 # logging.disable(logging.CRITICAL)
 
 
-def make_verbose(verbosity, *args):
+def show_verbose_output(verbosity, *args):
     """Logs output"""
     if verbosity:
         for arg in args:
@@ -138,7 +138,7 @@ def enforce_exclusion(folder_name, verbosity):
     exclusion_folder_start = [".", "_"] # skip folders that start with any of these characters
     if any([str(PurePath(folder_name)).startswith(each) for each in exclusion_folder_start]):
         if verbosity:
-            make_verbose(verbosity, folder_name, " starts with one of ", exclusion_folder_start, " skipping\n")
+            show_verbose_output(verbosity, folder_name, " starts with one of ", exclusion_folder_start, " skipping\n")
         return True
     return False
 
@@ -147,7 +147,7 @@ def match_rule(rules, path, verbosity):
     """Return True if a folder matches a rule in rules"""
     if rules:
         if any([rule in path for rule in rules]):
-            make_verbose(verbosity, path, " matches an exclusion rule. Skipping\n")
+            show_verbose_output(verbosity, path, " matches an exclusion rule. Skipping\n")
             return True
     return False
 
@@ -156,13 +156,13 @@ def shelve_master_directory(master_directory, verbosity, rules):
     """Find and store the locations of git repos"""
     if master_directory:
 
-        make_verbose(verbosity, "Master directory set to ", master_directory, "Now Shelving")
+        show_verbose_output(verbosity, "Master directory set to ", master_directory, "Now Shelving")
 
         i = len(list(INDEX_SHELF.keys())) + 1
         folder_paths = [x for x in Path(master_directory).iterdir() if x.is_dir()]
 
         for f in folder_paths: # log folders
-            make_verbose(verbosity, f)
+            show_verbose_output(verbosity, f)
 
         for folder_name in folder_paths:
             path = Path(master_directory) / folder_name
@@ -178,7 +178,7 @@ def shelve_master_directory(master_directory, verbosity, rules):
                 if sys.platform == 'linux':
                     name = PurePath(directory_absolute_path).parts[-1]
 
-                make_verbose(verbosity, directory_absolute_path, " is a git repository *** shelving\n")
+                show_verbose_output(verbosity, directory_absolute_path, " is a git repository *** shelving\n")
 
                 NAME_SHELF[name] = directory_absolute_path
                 INDEX_SHELF[str(i)] = name
@@ -194,7 +194,7 @@ def shelve_simple_directory(simple_directory, verbosity):
         for directory in simple_directory:
 
             if is_git_repo(directory):
-                make_verbose(verbosity, " is a git repository *** shelving\n")
+                show_verbose_output(verbosity, " is a git repository *** shelving\n")
                 if sys.platform == 'win32':
                     name = directory.split("\\")[-1]
                 if sys.platform == 'linux':
@@ -202,7 +202,7 @@ def shelve_simple_directory(simple_directory, verbosity):
                 NAME_SHELF[name] = directory
                 INDEX_SHELF[str(i)] = name
             else:
-                make_verbose(verbosity, " is not a valid git repo.\nContinuing...\n")
+                show_verbose_output(verbosity, " is not a valid git repo.\nContinuing...\n")
                 continue
             i += 1
 
@@ -267,6 +267,10 @@ def initialize():
         print("Indexing done")
     return
 
+
+def update():
+    """Update INDEX_SHELF"""
+    pass
 
 class Commands:
     """Commands class
