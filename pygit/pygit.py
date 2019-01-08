@@ -16,7 +16,7 @@ from send2trash import send2trash
 BASE_DIR = Path.home()
 DESKTOP = BASE_DIR / 'Desktop'
 # BASE_DIR = Path().resolve() / 'pygit'
-SHELF_DIR = Path.joinpath(Path().resolve(), "PYGIT_SHELF")
+SHELF_DIR = BASE_DIR / 'PYGIT_SHELF' #Path.joinpath(Path().resolve(), "PYGIT_SHELF")
 TEST_DIR = Path.joinpath(BASE_DIR, "TEST_FOLDER")
 
 
@@ -162,9 +162,7 @@ def save_master(master_directory):
 def shelve_master_directory(master_directory, verbosity, rules):
     """Find and store the locations of git repos"""
     if master_directory:
-
         save_master(master_directory)
-
         show_verbose_output(verbosity, "Master directory set to ", master_directory, "Now Shelving")
 
         i = len(list(INDEX_SHELF.keys())) + 1
@@ -276,10 +274,6 @@ def initialize():
         print("Indexing done")
     return
 
-
-def update():
-    """Update INDEX_SHELF"""
-    pass
 
 class Commands:
     """Commands class
