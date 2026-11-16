@@ -173,6 +173,47 @@ class CommandsTests(TempDirTestCase):
         self.assertIn("new.txt", cmd.status())
         self.assertIn("Changes to be committed", cmd.status())
 
+    def _staged_files(self):
+        return subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            cwd=self.repo, capture_output=True, text=True, check=True,
+        ).stdout.split("\n")[:-1]
+
+    def test_stage_file_does_not_execute_shell_metacharacters(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        marker = self.repo / "pwned.txt"
+        for payload in (
+            "; touch pwned.txt",
+            "x && touch pwned.txt",
+            "$(touch pwned.txt)",
+            "`touch pwned.txt`",
+            "x | touch pwned.txt",
+        ):
+            with self.subTest(payload=payload):
+                cmd.stage_file(payload)
+                self.assertFalse(marker.exists())
+
+    def test_stage_file_handles_names_with_spaces(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        (self.repo / "my file.txt").write_text("hello")
+        cmd.stage_file("my file.txt")
+        self.assertEqual(self._staged_files(), ["my file.txt"])
+
+    def test_stage_file_treats_leading_dash_as_a_path_not_an_option(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        (self.repo / "-A").write_text("hello")
+        (self.repo / "other.txt").write_text("hello")
+        cmd.stage_file("-A")
+        self.assertEqual(self._staged_files(), ["-A"])
+
+    def test_stage_file_uses_git_exec_when_given(self):
+        cmd = pygit.Commands("myrepo", str(self.repo), git_exec="/opt/git-cmd")
+        with mock.patch.object(pygit, "Popen") as popen:
+            popen.return_value.communicate.return_value = (b"", None)
+            cmd.stage_file("a.txt")
+        self.assertEqual(popen.call_args.args[0], ["/opt/git-cmd", "git", "add", "--", "a.txt"])
+        self.assertNotIn("shell", popen.call_args.kwargs)
+
     def test_stage_file_stages_only_that_file(self):
         cmd = pygit.Commands("myrepo", str(self.repo))
         (self.repo / "a.txt").write_text("a")
