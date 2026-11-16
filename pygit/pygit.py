@@ -365,11 +365,13 @@ class Commands:
 
     def stage_file(self, file_name):
         """git add file"""
-        stage_file = 'git add {}'.format(file_name)
+        # Pass arguments as a list and never through a shell, so file_name is
+        # treated as a single path and cannot inject commands. "--" stops git
+        # from interpreting a file_name that begins with "-" as an option.
+        command = ['git', 'add', '--', str(file_name)]
         if self.git_exec:
-            process = Popen([self.git_exec, stage_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-        else:
-            process = Popen(stage_file, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
+            command = [self.git_exec] + command
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
