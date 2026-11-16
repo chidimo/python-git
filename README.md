@@ -25,6 +25,24 @@ Just unzip it and place it somewhere on your disk. Later (during initialization)
   
       pip install python-git
 
+### Development setup (virtual environment)
+
+To work on `python-git` itself, create a virtual environment in the project directory and install the package in editable mode.
+
+macOS / Linux:
+
+      python3 -m venv .venv
+      source .venv/bin/activate
+      pip install -e .
+
+Windows (cmd):
+
+      python -m venv .venv
+      .venv\Scripts\activate
+      pip install -e .
+
+Install the dev tools with `pip install pytest pylint`. The tests live in `pygit/test.py`, so run them with `pytest pygit/test.py`. Leave the environment with `deactivate`.
+
 ## Setup
 
 After installation, an initial setup is required to tell `pygit` the folders it needs to work with. Open a terminal and `python -m pygit` the below line with appropriate command line arguments.
