@@ -112,6 +112,45 @@ class CheckGitSupportTests(unittest.TestCase):
     def test_false_when_output_has_no_version(self):
         self.assertFalse(self._run_with_output(b"command not found\n"))
 
+    def test_false_when_git_is_not_installed(self):
+        with mock.patch.object(pygit, "Popen", side_effect=FileNotFoundError):
+            self.assertFalse(pygit.check_git_support())
+
+    @unittest.skipUnless(git_available(), "git is not installed")
+    def test_true_with_real_git(self):
+        self.assertTrue(pygit.check_git_support())
+
+
+class RunGitTests(unittest.TestCase):
+    def _popen(self, output=b"out"):
+        proc = mock.Mock()
+        proc.communicate.return_value = (output, None)
+        return mock.patch.object(pygit, "Popen", return_value=proc)
+
+    def test_builds_argument_list_without_a_shell(self):
+        with self._popen() as popen:
+            result = pygit.run_git("add", "--", "a b.txt")
+        self.assertEqual(result, "out")
+        self.assertEqual(popen.call_args.args[0], ["git", "add", "--", "a b.txt"])
+        self.assertFalse(popen.call_args.kwargs.get("shell", False))
+
+    def test_git_exec_wraps_the_command(self):
+        with self._popen() as popen:
+            pygit.run_git("status", git_exec="/opt/git-cmd")
+        self.assertEqual(popen.call_args.args[0], ["/opt/git-cmd", "git", "status"])
+
+    def test_stderr_defaults_to_stdout_and_is_configurable(self):
+        with self._popen() as popen:
+            pygit.run_git("status")
+            self.assertEqual(popen.call_args.kwargs["stderr"], pygit.STDOUT)
+            pygit.run_git("push", stderr=pygit.PIPE)
+            self.assertEqual(popen.call_args.kwargs["stderr"], pygit.PIPE)
+
+    def test_no_shell_true_anywhere_in_the_module(self):
+        source = Path(pygit.__file__).read_text()
+        code_lines = [l for l in source.splitlines() if not l.lstrip().startswith("#")]
+        self.assertFalse([l for l in code_lines if "shell=True" in l])
+
 
 class CleanupTests(TempDirTestCase):
     def test_cleanup_sends_shelf_dir_to_trash(self):
@@ -172,6 +211,99 @@ class CommandsTests(TempDirTestCase):
         cmd.stage_all()
         self.assertIn("new.txt", cmd.status())
         self.assertIn("Changes to be committed", cmd.status())
+
+    def _staged_files(self):
+        return subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            cwd=self.repo, capture_output=True, text=True, check=True,
+        ).stdout.splitlines()
+
+    def test_injection_payloads_are_not_executed(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        marker = self.repo / "pwned.txt"
+        payloads = (
+            "; touch pwned.txt",
+            "x && touch pwned.txt",
+            "$(touch pwned.txt)",
+            "`touch pwned.txt`",
+            "x | touch pwned.txt",
+        )
+        for payload in payloads:
+            with self.subTest(payload=payload):
+                cmd.stage_file(payload)
+                cmd.stage_all(payload)
+                self.assertFalse(marker.exists())
+
+    def test_stage_file_handles_names_with_spaces(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        (self.repo / "my file.txt").write_text("hello")
+        cmd.stage_file("my file.txt")
+        self.assertEqual(self._staged_files(), ["my file.txt"])
+
+    def test_stage_file_treats_leading_dash_as_a_path(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        (self.repo / "-A").write_text("hello")
+        (self.repo / "other.txt").write_text("hello")
+        cmd.stage_file("-A")
+        self.assertEqual(self._staged_files(), ["-A"])
+
+    def test_stage_all_stages_each_listed_file(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        for name in ("a.txt", "b.txt", "c.txt"):
+            (self.repo / name).write_text(name)
+        cmd.stage_all("a.txt b.txt")
+        self.assertEqual(self._staged_files(), ["a.txt", "b.txt"])
+
+    def _commit_with_message(self, cmd, message):
+        git_env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+                   "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+        with mock.patch.dict(os.environ, git_env), \
+                mock.patch("builtins.input", return_value=message):
+            cmd.commit()
+
+    def _log(self):
+        return subprocess.run(
+            ["git", "log", "--format=%s"], cwd=self.repo,
+            capture_output=True, text=True, check=True,
+        ).stdout.splitlines()
+
+    def test_commit_message_is_taken_literally(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        (self.repo / "a.txt").write_text("a")
+        cmd.stage_all()
+        message = 'msg"; touch pwned.txt; echo "$(whoami)'
+        self._commit_with_message(cmd, message)
+        self.assertEqual(self._log(), [message])
+        self.assertFalse((self.repo / "pwned.txt").exists())
+
+    def test_commit_uses_default_message_on_empty_input(self):
+        cmd = pygit.Commands("myrepo", str(self.repo), message="default msg")
+        (self.repo / "a.txt").write_text("a")
+        cmd.stage_all()
+        self._commit_with_message(cmd, "")
+        self.assertEqual(self._log(), ["default msg"])
+
+    def test_reset_undoes_the_last_commit(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        for name in ("a.txt", "b.txt"):
+            (self.repo / name).write_text(name)
+            cmd.stage_all()
+            self._commit_with_message(cmd, f"add {name}")
+        cmd.reset()
+        self.assertEqual(self._log(), ["add a.txt"])
+
+    def test_reset_rejects_non_integer_count(self):
+        cmd = pygit.Commands("myrepo", str(self.repo))
+        with self.assertRaises(ValueError):
+            cmd.reset("1; touch pwned.txt")
+        self.assertFalse((self.repo / "pwned.txt").exists())
+
+    def test_git_exec_is_used_as_wrapper(self):
+        cmd = pygit.Commands("myrepo", str(self.repo), git_exec="/opt/git-cmd")
+        with mock.patch.object(pygit, "Popen") as popen:
+            popen.return_value.communicate.return_value = (b"", None)
+            cmd.stage_file("a.txt")
+        self.assertEqual(popen.call_args.args[0], ["/opt/git-cmd", "git", "add", "--", "a.txt"])
 
     def test_stage_file_stages_only_that_file(self):
         cmd = pygit.Commands("myrepo", str(self.repo))
