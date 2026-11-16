@@ -38,7 +38,7 @@ This creates `.venv/`, installs the package in editable mode and installs the de
 Run things inside the environment with `uv run`:
 
       uv run python -m pygit --help
-      uv run pytest pygit/test.py
+      uv run pytest
 
 Add or remove dependencies with `uv add <package>` / `uv remove <package>`, and use `uv add --dev <package>` for dev-only tools. Alternatively, activate the environment with `source .venv/bin/activate` (Windows: `.venv\Scripts\activate`).
 
