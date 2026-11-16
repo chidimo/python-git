@@ -91,7 +91,7 @@ def get_command_line_arguments():
     parser.add_argument("-v", "--verbosity", type=int, help="turn verbosity ON/OFF", choices=[0,1])
     parser.add_argument("-r", "--rules", help="Set a list of string patterns for folders to skip during setup", nargs='+')
     parser.add_argument('-g', '--gitPath', help="Full pathname to git executable. cmd or bash.")
-    parser.add_argument('-m', '--masterDirectory', help="Full pathname to directory holding any number of git repos.")
+    parser.add_argument('-m', '--mainDirectory', help="Full pathname to directory holding any number of git repos.")
     parser.add_argument('-s', '--simpleDirectory', help="A list of full pathnames to any number of individual git repos.", nargs='+')
     return parser.parse_args()
 
@@ -142,29 +142,29 @@ def match_rule(rules, path, verbosity):
     return False
 
 
-def save_master(master_directory):
-    """Saves the location of the master directory"""
-    global MASTER_SHELF
-    MASTER_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MASTER_SHELF")))
-    MASTER_SHELF["master"] = master_directory
-    MASTER_SHELF.close()
+def save_main(main_directory):
+    """Saves the location of the main directory"""
+    global MAIN_SHELF
+    MAIN_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MAIN_SHELF")))
+    MAIN_SHELF["main"] = main_directory
+    MAIN_SHELF.close()
 
 
-def shelve_master_directory(master_directory, verbosity, rules):
+def shelve_main_directory(main_directory, verbosity, rules):
     """Find and store the locations of git repos"""
 
-    if master_directory:
-        save_master(master_directory)
-        show_verbose_output(verbosity, "Master directory set to ", master_directory, "Now Shelving")
+    if main_directory:
+        save_main(main_directory)
+        show_verbose_output(verbosity, "Main directory set to ", main_directory, "Now Shelving")
 
         i = len(list(INDEX_SHELF.keys())) + 1
-        folder_paths = [x for x in Path(master_directory).iterdir() if x.is_dir()]
+        folder_paths = [x for x in Path(main_directory).iterdir() if x.is_dir()]
 
         for f in folder_paths: # log folders
             show_verbose_output(verbosity, f)
 
         for folder_name in folder_paths:
-            path = Path(master_directory) / folder_name
+            path = Path(main_directory) / folder_name
             if enforce_exclusion(folder_name, verbosity):
                 continue
             if match_rule(rules, path, verbosity):
@@ -227,7 +227,7 @@ def initialize():
     verbosity = args.verbosity
     rules = args.rules
     shelve_git_path(args.gitPath, verbosity)
-    shelve_master_directory(args.masterDirectory, verbosity, rules)
+    shelve_main_directory(args.mainDirectory, verbosity, rules)
     shelve_simple_directory(args.simpleDirectory, verbosity)
 
     INDEX_SHELF.close()
@@ -252,17 +252,17 @@ def update():
     """Update INDEX_SHELF"""
     NAME_SHELF = shelve.open(str(PurePath(SHELF_DIR / "NAME_SHELF")))
     INDEX_SHELF = shelve.open(str(PurePath(SHELF_DIR / "INDEX_SHELF")))
-    MASTER_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MASTER_SHELF")))
+    MAIN_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MAIN_SHELF")))
 
-    master = MASTER_SHELF["main"]
-    print("Master ", master)
-    save_master(master)
+    main = MAIN_SHELF["main"]
+    print(f"Main {main}")
+    save_main(main)
 
     i = len(list(INDEX_SHELF.keys())) + 1
-    folder_paths = [x for x in Path(master).iterdir() if x.is_dir()]
+    folder_paths = [x for x in Path(main).iterdir() if x.is_dir()]
 
     for folder_name in folder_paths:
-        path = Path(master) / folder_name
+        path = Path(main) / folder_name
 
         directory_absolute_path = Path(path).resolve()
         if is_git_repo(directory_absolute_path):
@@ -285,7 +285,7 @@ class Commands:
     -----------
     repo_name : str
         The repository name. See list of repositories by running
-    master_directory : str
+    main_directory : str
         The absolute path to the directory
     git_exec : str
         The path to the git executable on the system
@@ -306,9 +306,9 @@ class Commands:
         else:
             return False
 
-    def __init__(self, repo_name, master_directory, git_exec=None, message="minor changes"):
+    def __init__(self, repo_name, main_directory, git_exec=None, message="minor changes"):
         self.name = repo_name
-        self.dir = master_directory
+        self.dir = main_directory
         self.git_exec = git_exec
         self.message = message
 
