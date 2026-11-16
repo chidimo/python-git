@@ -87,7 +87,10 @@ def check_git_support():
     Return True if git is available via command line.
     If not, check if its available as an executable in installation folder.
     """
-    proc = Popen(['git', '--version'], shell=True, stdout=PIPE,)
+    try:
+        proc = Popen(['git', '--version'], stdout=PIPE,)
+    except OSError: # git is not on the path
+        return False
     msg, _ = proc.communicate()
     msg = msg.decode('utf-8')
     if "git version" in msg:
@@ -344,47 +347,37 @@ class Commands:
             return True
         return False
 
+    def _git(self, *args, stderr=STDOUT):
+        """Run `git *args` and return its stdout as text.
+
+        Arguments are passed as a list and never through a shell, so values
+        such as file names or commit messages are treated as single arguments
+        and cannot inject commands.
+        """
+        command = ['git', *args]
+        if self.git_exec:
+            command = [self.git_exec] + command
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=stderr)
+        output, _ = process.communicate()
+        return str(output.decode("utf-8"))
+
     def fetch(self):
         """git fetch"""
-        if self.git_exec:
-            process = Popen([self.git_exec, "git fetch"], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-        else:
-            process = Popen("git fetch", shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-        # output, error = process.communicate()
-        process.communicate()
+        self._git('fetch')
 
     def status(self):
         """git status"""
         self.fetch() # always do a fetch before reporting status
-        if self.git_exec:
-            process = Popen([self.git_exec, " git status"], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-        else:
-            process = Popen("git status", shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-        output, _ = process.communicate()
-        return str(output.decode("utf-8"))
+        return self._git('status')
 
     def stage_file(self, file_name):
         """git add file"""
-        # Pass arguments as a list and never through a shell, so file_name is
-        # treated as a single path and cannot inject commands. "--" stops git
-        # from interpreting a file_name that begins with "-" as an option.
-        command = ['git', 'add', '--', str(file_name)]
-        if self.git_exec:
-            command = [self.git_exec] + command
-        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-        output, _ = process.communicate()
-        return str(output.decode("utf-8"))
+        # "--" stops git from interpreting a file_name that begins with "-" as an option.
+        return self._git('add', '--', str(file_name))
 
     def stage_all(self, files="."):
         """git add all"""
-        files = "` ".join(files.split())
-        stage_file = 'git add {}'.format(files)
-        if self.git_exec:
-            process = Popen([self.git_exec, stage_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-        else:
-            process = Popen(stage_file, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-        output, _ = process.communicate()
-        return str(output.decode("utf-8"))
+        return self._git('add', '--', *files.split())
 
     def commit(self):
         """git commit"""
@@ -393,13 +386,7 @@ class Commands:
             message = self.message
         else:
             message = enter
-        # message = "` ".join(message.split())
-        if self.git_exec:
-            process = Popen([self.git_exec, 'git', ' commit ', '-m ', message], stdin=PIPE, stdout=PIPE, stderr=PIPE,)
-        else:
-            process = Popen(['git', ' commit', ' -m ', message], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,)
-        output, _ = process.communicate()
-        return str(output.decode("utf-8"))
+        return self._git('commit', '-m', message, stderr=PIPE)
 
     def stage_and_commit(self):
         """git add followed by commit"""
@@ -408,30 +395,15 @@ class Commands:
 
     def push(self):
         """git push"""
-        if self.git_exec:
-            process = Popen([self.git_exec, ' git push'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-        else:
-            process = Popen(['git push'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,)
-        output, _ = process.communicate()
-        return str("Push completed.{}".format(str(output.decode("utf-8"))))
+        return "Push completed.{}".format(self._git('push', stderr=PIPE))
 
     def pull(self):
         """git pull"""
-        if self.git_exec:
-            process = Popen([self.git_exec, ' git pull'], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-        else:
-            process = Popen(['git pull'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,)
-        output, _ = process.communicate()
-        return str("Pull completed.\n{}".format(str(output.decode("utf-8"))))
+        return "Pull completed.\n{}".format(self._git('pull', stderr=PIPE))
 
     def reset(self, number='1'):
         """git reset"""
-        if self.git_exec:
-            process = Popen([self.git_exec, ' git reset HEAD~', number], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-        else:
-            process = Popen(['git reset HEAD~', number], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-        output, _ = process.communicate()
-        return str(output.decode("utf-8"))
+        return self._git('reset', 'HEAD~{}'.format(int(number)))
 
     # def branch(self):
     #     """Return the branch being tracked by local"""
