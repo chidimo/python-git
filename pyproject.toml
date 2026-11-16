@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-git"
+version = "2018.01.08"
+description = "Automate boring git tasks"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Chidi Orji", email = "orjichidi95@gmail.com" }]
+keywords = ["automate", "boring", "git", "github", "tasks"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Topic :: Utilities",
+]
+dependencies = ["send2trash"]
+
+[project.urls]
+Homepage = "https://github.com/chidimo/python-git"
+Download = "https://github.com/chidimo/python-git/archive/master.zip"
+
+[dependency-groups]
+dev = ["pytest", "pylint", "twine"]
+
+[tool.setuptools]
+packages = ["pygit"]

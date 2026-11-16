@@ -25,23 +25,22 @@ Just unzip it and place it somewhere on your disk. Later (during initialization)
   
       pip install python-git
 
-### Development setup (virtual environment)
+### Development setup (uv)
 
-To work on `python-git` itself, create a virtual environment in the project directory and install the package in editable mode.
+This project uses [uv](https://docs.astral.sh/uv/) to manage the virtual environment and dependencies.
 
-macOS / Linux:
+Install uv (macOS: `brew install uv`, other platforms: see the uv docs), then from the project directory:
 
-      python3 -m venv .venv
-      source .venv/bin/activate
-      pip install -e .
+      uv sync
 
-Windows (cmd):
+This creates `.venv/`, installs the package in editable mode and installs the dev tools (`pytest`, `pylint`, `twine`) pinned in `uv.lock`.
 
-      python -m venv .venv
-      .venv\Scripts\activate
-      pip install -e .
+Run things inside the environment with `uv run`:
 
-Install the dev tools with `pip install pytest pylint`. The tests live in `pygit/test.py`, so run them with `pytest pygit/test.py`. Leave the environment with `deactivate`.
+      uv run python -m pygit --help
+      uv run pytest pygit/test.py
+
+Add or remove dependencies with `uv add <package>` / `uv remove <package>`, and use `uv add --dev <package>` for dev-only tools. Alternatively, activate the environment with `source .venv/bin/activate` (Windows: `.venv\Scripts\activate`).
 
 ## Setup
 
