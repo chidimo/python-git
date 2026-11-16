@@ -1,15 +1,14 @@
 #! /usr/bin/python3.6
 
-import os
-import sys
-import shutil
-import shelve
 import argparse
 import logging
-
+import os
+import shelve
+import shutil
+import sys
 from datetime import datetime
-from subprocess import Popen, PIPE, STDOUT
 from pathlib import Path, PurePath, PureWindowsPath
+from subprocess import PIPE, STDOUT, Popen
 
 from send2trash import send2trash
 
@@ -19,13 +18,8 @@ SHELF_DIR = BASE_DIR / 'python-git-shelf'
 STATUS_DIR = BASE_DIR / 'python-git-status'
 TEST_DIR = BASE_DIR / "TEST_FOLDER"
 
-# NAME_SHELF = shelve.open(str(PurePath(SHELF_DIR / "NAME_SHELF"))) # Use the string representation to open path to avoid errors
-# INDEX_SHELF = shelve.open(str(PurePath(SHELF_DIR / "INDEX_SHELF")))
-# MASTER_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MASTER_SHELF")))
-
 def logging_def(log_file_name):
     FORMATTER = logging.Formatter("%(asctime)s:%(funcName)s:%(levelname)s\n%(message)s")
-    # console_logger = logging.StreamHandler(sys.stdout)
     file_logger = logging.FileHandler(log_file_name)
     file_logger.setFormatter(FORMATTER)
 
@@ -40,6 +34,10 @@ pygit_logger = logging_def('pygit_logger.log')
 # logging.disable(logging.CRITICAL)
 
 
+class PygitException(Exception):
+    """An exception just occurred"""
+
+
 def show_verbose_output(verbosity, *args):
     """Logs output"""
     if verbosity:
@@ -50,7 +48,6 @@ def show_verbose_output(verbosity, *args):
 def cleanup():
     """Cleanup files"""
     send2trash(SHELF_DIR)
-    return
 
 # keep for later
 def kill_process(process):
@@ -59,16 +56,12 @@ def kill_process(process):
             process.kill()
         except PermissionError: # ignore
             print("Os error. cannot kill kill_process")
-            pass
-    return
 
 
 def need_attention(status_msg):
     """Return True if a repo status is not exactly same as that of remote"""
     msg = ["not staged", "behind", "ahead", "Untracked"]
-    if any([each in status_msg for each in msg]):
-        return True
-    return False
+    return any(each in status_msg for each in msg)
 
 
 def is_git_repo(directory):
@@ -77,9 +70,7 @@ def is_git_repo(directory):
     Checks the 'git status' message for error
     """
     files = os.listdir(directory)
-    if '.git' in files:
-        return True
-    return False
+    return '.git' in files
 
 
 def check_git_support():
@@ -90,9 +81,7 @@ def check_git_support():
     proc = Popen(['git', '--version'], shell=True, stdout=PIPE,)
     msg, _ = proc.communicate()
     msg = msg.decode('utf-8')
-    if "git version" in msg:
-        return True
-    return False
+    return "git version" in msg
 
 
 def get_command_line_arguments():
@@ -107,7 +96,7 @@ def get_command_line_arguments():
     return parser.parse_args()
 
 
-def shelve_git_path(git_path, verbosity):
+def shelve_git_path(git_path, _verbosity):
     """Find and store the location of git executable"""
 
     if check_git_support():
@@ -138,7 +127,7 @@ def shelve_git_path(git_path, verbosity):
 def enforce_exclusion(folder_name, verbosity):
     """Return True if a folder starts with any character in exclusion_folder_start"""
     exclusion_folder_start = [".", "_"] # skip folders that start with any of these characters
-    if any([str(PurePath(folder_name)).startswith(each) for each in exclusion_folder_start]):
+    if any(str(PurePath(folder_name)).startswith(each) for each in exclusion_folder_start):
         if verbosity:
             show_verbose_output(verbosity, folder_name, " starts with one of ", exclusion_folder_start, " skipping\n")
         return True
@@ -147,10 +136,9 @@ def enforce_exclusion(folder_name, verbosity):
 
 def match_rule(rules, path, verbosity):
     """Return True if a folder matches a rule in rules"""
-    if rules:
-        if any([rule in path for rule in rules]):
-            show_verbose_output(verbosity, path, " matches an exclusion rule. Skipping\n")
-            return True
+    if rules and  any(rule in path for rule in rules):
+        show_verbose_output(verbosity, path, " matches an exclusion rule. Skipping\n")
+        return True
     return False
 
 
@@ -194,8 +182,6 @@ def shelve_master_directory(master_directory, verbosity, rules):
                 NAME_SHELF[name] = directory_absolute_path
                 INDEX_SHELF[str(i)] = name
                 i += 1
-        # NAME_SHELF.close()
-        # INDEX_SHELF.close()
 
 
 def shelve_simple_directory(simple_directory, verbosity):
@@ -252,26 +238,24 @@ def initialize():
         NAME_SHELF = shelve.open(str(PurePath(SHELF_DIR / "NAME_SHELF")))
         INDEX_SHELF = shelve.open(str(PurePath(SHELF_DIR / "INDEX_SHELF")))
 
-        print("Status saved in {}".format(STATUS_DIR))
+        print(f"Status saved in {STATUS_DIR}")
         print("{:<4} {:<20} {:<}".format("Key", "| Name", "| Path"))
         print("*********************************")
         for key in INDEX_SHELF.keys():
             name = INDEX_SHELF[key]
-            print("{:<4} {:<20} {:<}".format(key, name, str(NAME_SHELF[name])))
+            print(f"{key:<4} {name:<20} {NAME_SHELF[name]!s:<}")
     else:
         print("Indexing done")
-    return
 
 
 def update():
     """Update INDEX_SHELF"""
-    MASTER_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MASTER_SHELF")))
-    INDEX_SHELF = shelve.open(str(PurePath(SHELF_DIR / "INDEX_SHELF")))
     NAME_SHELF = shelve.open(str(PurePath(SHELF_DIR / "NAME_SHELF")))
+    INDEX_SHELF = shelve.open(str(PurePath(SHELF_DIR / "INDEX_SHELF")))
+    MASTER_SHELF = shelve.open(str(PurePath(SHELF_DIR / "MASTER_SHELF")))
 
-    master = MASTER_SHELF["master"]
+    master = MASTER_SHELF["main"]
     print("Master ", master)
-    # shelve_master_directory(master, 0, "")
     save_master(master)
 
     i = len(list(INDEX_SHELF.keys())) + 1
@@ -292,7 +276,6 @@ def update():
             i += 1
 
     print("Update completed successfully")
-    return
 
 
 class Commands:
@@ -315,7 +298,7 @@ class Commands:
 	"""
 
     def __str__(self):
-        return "Commands: {}: {}".format(self.name, self.dir)
+        return f"Commands: {self.name}: {self.dir}"
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -332,7 +315,7 @@ class Commands:
         try:
             os.chdir(self.dir)
         except (FileNotFoundError, TypeError):
-            print("{} may have been moved.\n Run initialize() to update paths".format(self.name))
+            print(f"{self.name} may have been moved.\n Run initialize() to update paths")
         self.dir = os.getcwd()
 
 
@@ -340,9 +323,7 @@ class Commands:
         """Return True if a repo status is not exactly same as that of remote"""
         msg = ["not staged", "behind", "ahead", "Untracked"]
         status_msg = self.status()
-        if any([each in status_msg for each in msg]):
-            return True
-        return False
+        return any(each in status_msg for each in msg)
 
     def fetch(self):
         """git fetch"""
@@ -350,7 +331,6 @@ class Commands:
             process = Popen([self.git_exec, "git fetch"], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
         else:
             process = Popen("git fetch", shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-        # output, error = process.communicate()
         process.communicate()
 
     def status(self):
@@ -365,7 +345,7 @@ class Commands:
 
     def stage_file(self, file_name):
         """git add file"""
-        stage_file = 'git add {}'.format(file_name)
+        stage_file = f'git add {file_name}'
         if self.git_exec:
             process = Popen([self.git_exec, stage_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         else:
@@ -376,7 +356,7 @@ class Commands:
     def stage_all(self, files="."):
         """git add all"""
         files = "` ".join(files.split())
-        stage_file = 'git add {}'.format(files)
+        stage_file = f'git add {files}'
         if self.git_exec:
             process = Popen([self.git_exec, stage_file], stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
         else:
@@ -391,7 +371,6 @@ class Commands:
             message = self.message
         else:
             message = enter
-        # message = "` ".join(message.split())
         if self.git_exec:
             process = Popen([self.git_exec, 'git', ' commit ', '-m ', message], stdin=PIPE, stdout=PIPE, stderr=PIPE,)
         else:
@@ -431,18 +410,6 @@ class Commands:
         output, _ = process.communicate()
         return str(output.decode("utf-8"))
 
-    # def branch(self):
-    #     """Return the branch being tracked by local"""
-    #     process = Popen([self.git_exec, 'git branch -vv'], shell=True,
-    #                     stdin=PIPE, stdout=PIPE, stderr=STDOUT,)
-    #     output, _ = process.communicate()
-    #     out_text = str(output.decode("utf-8"))
-    #     try:
-    #         line = [each for each in out_text.split("\n") if each.startswith("*")][0]
-    #     except IndexError: # no lines start with *
-    #         return
-    #     branch_name = re.search(r"\[origin\/(.*)\]", line)
-    #     return branch_name.group(1)
 
 def repos():
     """Show all available repositories, path, and unique ID"""
@@ -454,7 +421,7 @@ def repos():
     print("******************************************")
     for key in INDEX_SHELF.keys():
         name = INDEX_SHELF[key]
-        print("{:<4} {:<20} {:<}".format(key, name, str(NAME_SHELF[name])))
+        print(f"{key:<4} {name:<20} {NAME_SHELF[name]!s:<}")
     INDEX_SHELF.close()
     NAME_SHELF.close()
 
@@ -471,12 +438,12 @@ def load(input_string): # id is string
             name = INDEX_SHELF[input_string]
             return Commands(name, str(NAME_SHELF[name]))
         except KeyError:
-            raise Exception("That index does not exist.")
+            raise PygitException("That index does not exist.")
     except ValueError:
         try:
             return Commands(input_string, NAME_SHELF[input_string])
         except KeyError:
-            raise Exception("That repository name does not exist or is not indexed")
+            raise PygitException("That repository name does not exist or is not indexed")
     INDEX_SHELF.close()
     NAME_SHELF.close()
 
@@ -505,14 +472,12 @@ def load_multiple(*args, _all=False):
 
 def pull(*args, _all=False):
     for each in load_multiple(*args, _all=_all):
-        s = "*** {} ***\n{}".format(each.name, each.pull())
-        print(s)
+        print(f"*** {each.name} ***\n{each.pull()}")
 
 
 def push(*args, _all=False):
     for each in load_multiple(*args, _all=_all):
-        s = "*** {} ***\n{}".format(each.name, each.push())
-        print(s)
+        print(f"*** {each.name} ***\n{each.push()}")
 
 
 def all_status():
@@ -524,18 +489,18 @@ def all_status():
     messages = []
     TIME_STAMP = datetime.now().strftime("%a_%d_%b_%Y_%H_%M_%S_%p")
 
-    fname = "REPO_STATUS_@_{}.md".format(TIME_STAMP)
+    fname = f"REPO_STATUS_@_{TIME_STAMP}.md"
     with open(fname, 'w+') as f:
-        f.write("# Repository status as at {}\n\n".format(TIME_STAMP))
+        f.write(f"# Repository status as at {TIME_STAMP}\n\n")
         
         for each in load_multiple(_all=True):
             name = each.name
             status = each.status()
 
-            messages.append("## {}\n\n```cmd\n{}```\n".format(name, status))
+            messages.append(f"## {name}\n\n```cmd\n{status}```\n")
 
             if need_attention(status):
-                attention += "1. {}\n".format(name)
+                attention += f"1. {name}\n"
 
         f.write("## REPOS NEEDING ATTENTION\n\n")
         f.write(attention)
@@ -545,7 +510,6 @@ def all_status():
 
     print("\n\nDone. Status file saved in ", STATUS_DIR)
     os.chdir(BASE_DIR)
-    return
 
 if __name__ == "__main__":
     initialize()
