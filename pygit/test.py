@@ -87,11 +87,20 @@ class ExclusionTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertTrue(pygit.enforce_exclusion(name, 0))
 
+    def test_exclusion_checks_the_folder_name_not_the_whole_path(self):
+        self.assertTrue(pygit.enforce_exclusion(Path("/a/b/.hidden"), 0))
+        self.assertTrue(pygit.enforce_exclusion(Path("/a/b/_private"), 0))
+        self.assertFalse(pygit.enforce_exclusion(Path("/a/.config/project"), 0))
+
     def test_normal_folder_is_not_excluded(self):
         self.assertFalse(pygit.enforce_exclusion("project", 0))
 
     def test_match_rule_matches_substring(self):
         self.assertTrue(pygit.match_rule(["node_modules"], "/a/node_modules/b", 0))
+
+    def test_match_rule_accepts_path_objects(self):
+        self.assertTrue(pygit.match_rule(["skipme"], Path("/a/skipme/b"), 0))
+        self.assertFalse(pygit.match_rule(["skipme"], Path("/a/b"), 0))
 
     def test_match_rule_without_match_or_rules(self):
         self.assertFalse(pygit.match_rule(["node_modules"], "/a/b", 0))
