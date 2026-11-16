@@ -1130,7 +1130,7 @@ wheels = [
 
 [[package]]
 name = "python-git"
-version = "2026.11.10"
+version = "2026.11.15"
 source = { editable = "." }
 dependencies = [
     { name = "send2trash" },
