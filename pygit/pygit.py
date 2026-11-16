@@ -143,7 +143,7 @@ def shelve_git_path(git_path, _verbosity):
 def enforce_exclusion(folder_name, verbosity):
     """Return True if a folder starts with any character in exclusion_folder_start"""
     exclusion_folder_start = [".", "_"] # skip folders that start with any of these characters
-    if any(str(PurePath(folder_name)).startswith(each) for each in exclusion_folder_start):
+    if any(PurePath(folder_name).name.startswith(each) for each in exclusion_folder_start):
         if verbosity:
             show_verbose_output(verbosity, folder_name, " starts with one of ", exclusion_folder_start, " skipping\n")
         return True
@@ -152,7 +152,7 @@ def enforce_exclusion(folder_name, verbosity):
 
 def match_rule(rules, path, verbosity):
     """Return True if a folder matches a rule in rules"""
-    if rules and  any(rule in path for rule in rules):
+    if rules and any(rule in str(path) for rule in rules):
         show_verbose_output(verbosity, path, " matches an exclusion rule. Skipping\n")
         return True
     return False
