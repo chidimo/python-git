@@ -9,3 +9,4 @@ python_git.egg-info/
 PYGIT_SHELF/
 .venv/
 .pytest_cache/
+.env
